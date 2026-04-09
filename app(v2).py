@@ -276,12 +276,10 @@ header[data-testid="stHeader"]::before {
     display: none;
 }
 /* Hide toolbar safely */
-div[data-testid="stToolbar"] {
-    opacity: 0;
-}
-
-/* Ensure toggle is clickable */
-div[data-testid="collapsedControl"] {
+/* Target ALL sidebar toggle states */
+button[kind="header"],
+div[data-testid="collapsedControl"],
+button[data-testid="collapsedControl"] {
     visibility: visible !important;
     opacity: 1 !important;
     pointer-events: auto !important;
