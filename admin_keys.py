@@ -35,7 +35,7 @@ from tabulate import tabulate   # pip install tabulate
 #  CONFIG  — edit these or set env vars
 # ═══════════════════════════════════════════════════════════════════════════
 
-SHEET_ID             = os.environ.get("DSX_SHEET_ID", "YOUR_GOOGLE_SHEET_ID_HERE")
+SHEET_ID             = os.environ.get("DSX_SHEET_ID", "1DwhsaYqT7B0TObUOoC_a4cnGpMQlS4yZiQjkSE3h0RQ")
 SERVICE_ACCOUNT_FILE = os.environ.get("DSX_SA_FILE",  "./service_account.json")
 SHEET_TAB            = "datasynthx_keys"
 
@@ -86,7 +86,7 @@ def _connect() -> gspread.Worksheet:
             RED(f"✗ Service account file not found: {sa_path.resolve()}\n")
             + DIM("  Set DSX_SA_FILE env var or place service_account.json here.")
         )
-    if SHEET_ID == "YOUR_GOOGLE_SHEET_ID_HERE":
+    if SHEET_ID == "1DwhsaYqT7B0TObUOoC_a4cnGpMQlS4yZiQjkSE3h0RQ":
         sys.exit(
             RED("✗ SHEET_ID is not configured.\n")
             + DIM("  Edit CONFIG in admin_keys.py or: export DSX_SHEET_ID=your-id")

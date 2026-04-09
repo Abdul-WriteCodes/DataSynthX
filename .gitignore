@@ -5,4 +5,18 @@ env/
 
 # Environment files
 .env
-.env.local
+
+.streamlit/secrets.toml
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+
+
+#googlesheet and consol credentials
+service_account.json
+
+
+# Temporary debug files
+tracked_venv.txt
