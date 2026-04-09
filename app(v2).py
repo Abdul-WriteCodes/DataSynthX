@@ -275,12 +275,17 @@ header[data-testid="stHeader"] {
 header[data-testid="stHeader"]::before {
     display: none;
 }
-/* Hide only the toolbar items (Deploy button etc.), not the collapse button */
+/* Hide toolbar safely */
 div[data-testid="stToolbar"] {
     opacity: 0;
     pointer-events: none;
 }
-/*div[data-testid="collapsedControl"] { color: var(--text) !important; } */
+
+/* Ensure toggle is visible */
+div[data-testid="collapsedControl"] {
+    visibility: visible !important;
+}
+div[data-testid="collapsedControl"] { color: var(--text) !important; }
 </style>
 """, unsafe_allow_html=True)
 
