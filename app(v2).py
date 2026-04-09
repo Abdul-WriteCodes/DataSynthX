@@ -280,7 +280,7 @@ div[data-testid="stToolbar"] {
     opacity: 0;
     pointer-events: none;
 }
-div[data-testid="collapsedControl"] { color: var(--text) !important; }
+/*div[data-testid="collapsedControl"] { color: var(--text) !important; } */
 </style>
 """, unsafe_allow_html=True)
 
