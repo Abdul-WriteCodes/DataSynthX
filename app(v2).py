@@ -278,14 +278,16 @@ header[data-testid="stHeader"]::before {
 /* Hide toolbar safely */
 div[data-testid="stToolbar"] {
     opacity: 0;
-    pointer-events: none;
 }
 
-/* Ensure toggle is visible */
+/* Ensure toggle is clickable */
 div[data-testid="collapsedControl"] {
     visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+    cursor: pointer !important;
 }
-div[data-testid="collapsedControl"] { color: var(--text) !important; }
 </style>
 """, unsafe_allow_html=True)
 
