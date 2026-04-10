@@ -65,7 +65,7 @@ section[data-testid="stSidebar"] * { color: var(--text) !important; }
 }
 .brand-name {
     font-family: 'Syne', sans-serif;
-    font-size: 11px;
+    font-size: 22px;
     font-weight: 800;
     background: linear-gradient(90deg, var(--accent), var(--accent2));
     -webkit-background-clip: text;
