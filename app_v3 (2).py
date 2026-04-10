@@ -318,7 +318,7 @@ def _get_gsheet_client():
 
 def _get_keys_worksheet():
     gc = _get_gsheet_client()
-    sheet_id = st.secrets["datasynthx"]["google_sheet_id"]
+    sheet_id = st.secrets["datasynthx"]["SHEET_ID"]
     sh = gc.open_by_key(sheet_id)
     return sh.worksheet(SHEET_NAME)
 
