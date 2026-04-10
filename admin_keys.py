@@ -86,6 +86,7 @@ def _connect() -> gspread.Worksheet:
             RED(f"✗ Service account file not found: {sa_path.resolve()}\n")
             + DIM("  Set DSX_SA_FILE env var or place service_account.json here.")
         )
+
     if SHEET_ID in ("YOUR_GOOGLE_SHEET_ID_HERE", ""):
         sys.exit(
             RED("✗ SHEET_ID is not configured.\n")
@@ -93,9 +94,11 @@ def _connect() -> gspread.Worksheet:
         )
 
     creds = Credentials.from_service_account_file(str(sa_path), scopes=SCOPES)
-    gc    = gspread.Client(auth=creds)
-    gc.login()  # explicitly trigger auth handshake
-    sh    = gc.open_by_key(SHEET_ID)
+
+    # ✅ FIX: proper client initialization
+    gc = gspread.authorize(creds)
+
+    sh = gc.open_by_key(SHEET_ID)
 
     try:
         ws = sh.worksheet(SHEET_TAB)
@@ -163,6 +166,8 @@ def _generate_key(existing_keys: set[str]) -> str:
 
 def _validate_email(email: str) -> bool:
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
+
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
