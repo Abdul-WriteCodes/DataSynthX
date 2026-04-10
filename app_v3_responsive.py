@@ -1,0 +1,1800 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from scipy import stats
+from scipy.stats import ks_2samp, wasserstein_distance
+import io
+import warnings
+import gspread
+from google.oauth2.service_account import Credentials
+warnings.filterwarnings('ignore')
+
+# ─── Page Config ────────────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="DataSynthX",
+    page_icon="⬡",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# ─── Custom CSS ─────────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+:root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent: #7c6af7;
+    --accent2: #3ecfcf;
+    --accent3: #f76a6a;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --sidebar-width: 300px;
+    --touch-target: 44px;
+}
+
+/* ── Reset & Base ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, [class*="css"] {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+.stApp { background: var(--bg); }
+
+/* ── Block container responsive padding ─────────── */
+.block-container {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 1.5rem !important;
+    max-width: 100% !important;
+}
+
+@media (min-width: 768px) {
+    .block-container {
+        padding-left: 2.5rem !important;
+        padding-right: 2.5rem !important;
+        padding-top: 2rem !important;
+    }
+}
+
+/* ── Sidebar ──────────────────────────────────────── */
+section[data-testid="stSidebar"] {
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border);
+    min-width: 260px !important;
+    max-width: 320px !important;
+}
+section[data-testid="stSidebar"] * { color: var(--text) !important; }
+section[data-testid="stSidebar"] .block-container {
+    padding: 1rem !important;
+}
+
+/* ── Brand Header ────────────────────────────────── */
+.brand-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+.brand-logo {
+    width: 36px; height: 36px;
+    min-width: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.brand-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+.brand-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: -4px;
+    white-space: nowrap;
+}
+
+/* ── Metric Cards ────────────────────────────────── */
+.metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+@media (min-width: 768px) {
+    .metric-card { padding: 20px; }
+}
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.metric-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+@media (min-width: 768px) {
+    .metric-label { font-size: 10px; margin-bottom: 8px; }
+}
+.metric-value {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    word-break: break-all;
+}
+@media (min-width: 768px) {
+    .metric-value { font-size: 32px; }
+}
+.metric-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+/* ── SCI Score Gauge ─────────────────────────────── */
+.sci-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 16px;
+    text-align: center;
+}
+@media (min-width: 768px) {
+    .sci-container { padding: 32px; }
+}
+.sci-ring {
+    width: 120px; height: 120px;
+    margin: 0 auto 12px;
+    position: relative;
+}
+@media (min-width: 768px) {
+    .sci-ring { width: 160px; height: 160px; margin-bottom: 16px; }
+}
+.sci-score {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+}
+@media (min-width: 768px) {
+    .sci-score { font-size: 48px; }
+}
+.sci-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+
+/* ── Tabs ─────────────────────────────────────────── */
+.stTabs [data-baseweb="tab-list"] {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+}
+.stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display: none; }
+.stTabs [data-baseweb="tab"] {
+    background: transparent;
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border: none;
+    white-space: nowrap;
+    min-height: var(--touch-target);
+    flex-shrink: 0;
+}
+@media (min-width: 768px) {
+    .stTabs [data-baseweb="tab"] {
+        font-size: 12px;
+        letter-spacing: 1px;
+        padding: 8px 20px;
+    }
+}
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, var(--accent), #6055d4) !important;
+    color: white !important;
+}
+
+/* ── Buttons ─────────────────────────────────────── */
+.stButton > button {
+    background: linear-gradient(135deg, var(--accent), #6055d4);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    width: 100%;
+    min-height: var(--touch-target);
+    transition: all 0.2s;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(124, 106, 247, 0.35);
+}
+.stButton > button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* ── Download Button ─────────────────────────────── */
+.stDownloadButton > button {
+    background: var(--surface2);
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+    border-radius: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    width: 100%;
+    min-height: var(--touch-target);
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Form Inputs ─────────────────────────────────── */
+.stNumberInput input {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    color: var(--text) !important;
+    min-height: var(--touch-target) !important;
+    font-size: 16px !important; /* Prevent iOS zoom */
+}
+.stSlider { background: var(--surface2) !important; }
+.stSelectbox select {
+    background: var(--surface2) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    color: var(--text) !important;
+    min-height: var(--touch-target) !important;
+    font-size: 16px !important;
+}
+/* Slider track */
+.stSlider [data-baseweb="slider"] {
+    padding: 12px 0;
+}
+/* Text inputs: prevent iOS zoom by keeping font-size >= 16px */
+input[type="text"], input[type="number"], textarea {
+    font-size: 16px !important;
+}
+
+/* ── File Uploader ───────────────────────────────── */
+.stFileUploader {
+    background: var(--surface);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+}
+.stFileUploader label {
+    font-size: 14px !important;
+}
+
+/* ── Section Headers ─────────────────────────────── */
+.section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+@media (min-width: 768px) {
+    .section-title { font-size: 18px; }
+}
+.section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 8px;
+}
+.section-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* ── Status Badges ───────────────────────────────── */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.badge-green { background: rgba(62,207,207,0.1); color: var(--accent2); border: 1px solid rgba(62,207,207,0.3); }
+.badge-purple { background: rgba(124,106,247,0.1); color: var(--accent); border: 1px solid rgba(124,106,247,0.3); }
+.badge-red { background: rgba(247,106,106,0.1); color: var(--accent3); border: 1px solid rgba(247,106,106,0.3); }
+
+/* ── Tables ──────────────────────────────────────── */
+.stDataFrame {
+    border: 1px solid var(--border) !important;
+    border-radius: 8px;
+    overflow: hidden;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+thead th { background: var(--surface2) !important; }
+
+/* ── Progress Bar ────────────────────────────────── */
+.stProgress > div > div { background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; }
+
+/* ── Dividers ────────────────────────────────────── */
+hr { border-color: var(--border); }
+
+/* ── Plotly Charts ───────────────────────────────── */
+.js-plotly-plot .plotly { background: transparent !important; }
+.js-plotly-plot { overflow-x: auto !important; }
+
+/* ── Mobile: stacked columns fallback ───────────── */
+/* On very small screens Streamlit already stacks columns, but
+   ensure cards don't overflow */
+@media (max-width: 480px) {
+    .metric-value { font-size: 22px; }
+    .metric-card { padding: 12px; border-radius: 10px; }
+    .stTabs [data-baseweb="tab"] { font-size: 10px; padding: 7px 10px; }
+}
+
+/* ── Scrollable heatmap wrapper ──────────────────── */
+.heatmap-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Export grid: responsive ─────────────────────── */
+.export-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+@media (min-width: 600px) {
+    .export-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── Hide Streamlit chrome ───────────────────────── */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+header[data-testid="stHeader"]::before { display: none; }
+
+/* ── Sidebar toggle – always tappable ───────────── */
+button[kind="header"],
+div[data-testid="collapsedControl"],
+button[data-testid="collapsedControl"] {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+    cursor: pointer !important;
+    min-width: var(--touch-target) !important;
+    min-height: var(--touch-target) !important;
+}
+
+/* ── Alert / error / info boxes ─────────────────── */
+.stAlert { border-radius: 10px !important; }
+
+/* ── Spinner ─────────────────────────────────────── */
+.stSpinner { color: var(--accent) !important; }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  GOOGLE SHEETS CREDIT ENGINE
+# ═══════════════════════════════════════════════════════════════════════════
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.readonly",
+]
+SHEET_NAME      = "datasynthx_keys"   # Tab name inside the Google Sheet
+COL_KEY         = "access_key"
+COL_CREDITS     = "credits_remaining"
+COL_OWNER       = "owner"
+COL_PLAN        = "plan"
+CREDITS_PER_RUN = 1                   # 1 credit consumed per Generate run
+
+
+@st.cache_resource(show_spinner=False)
+def _get_gsheet_client():
+    """Authenticate with Google Sheets using service-account JSON in secrets."""
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    return gspread.authorize(creds)
+
+
+def _get_keys_worksheet():
+    gc = _get_gsheet_client()
+    sheet_id = st.secrets["datasynthx"]["SHEET_ID"]
+    sh = gc.open_by_key(sheet_id)
+    return sh.worksheet(SHEET_NAME)
+
+
+def validate_key(access_key: str):
+    """Return row dict for valid key, or None if not found."""
+    try:
+        ws = _get_keys_worksheet()
+        records = ws.get_all_records()
+        for row in records:
+            if str(row.get(COL_KEY, "")).strip() == access_key.strip():
+                return row
+        return None
+    except Exception as e:
+        st.error(f"Key validation error: {e}")
+        return None
+
+
+def get_credits(access_key: str) -> int:
+    """Fetch live credit balance for a key."""
+    try:
+        ws = _get_keys_worksheet()
+        records = ws.get_all_records()
+        for row in records:
+            if str(row.get(COL_KEY, "")).strip() == access_key.strip():
+                return int(row.get(COL_CREDITS, 0))
+        return 0
+    except Exception:
+        return 0
+
+
+def deduct_credit(access_key: str) -> int:
+    """Deduct one credit. Returns new balance."""
+    try:
+        ws = _get_keys_worksheet()
+        records = ws.get_all_records()
+        header = ws.row_values(1)
+        credits_col_idx = header.index(COL_CREDITS) + 1  # 1-based
+        for i, row in enumerate(records):
+            if str(row.get(COL_KEY, "")).strip() == access_key.strip():
+                row_number = i + 2  # +1 header, +1 for 1-based
+                current  = int(row.get(COL_CREDITS, 0))
+                new_val  = max(0, current - CREDITS_PER_RUN)
+                ws.update_cell(row_number, credits_col_idx, new_val)
+                return new_val
+        return 0
+    except Exception as e:
+        st.error(f"Credit deduction error: {e}")
+        return 0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  LANDING PAGE
+# ═══════════════════════════════════════════════════════════════════════════
+
+PLANS = [
+    {
+        "name": "Starter",
+        "price": "$9",
+        "credits": 20,
+        "period": "one-time",
+        "features": ["20 generation runs", "Up to 500K rows/run", "CSV & Excel export", "Trust metrics dashboard"],
+        "highlight": False,
+        "color": "#3ecfcf",
+        "link": "https://buy.stripe.com/starter_link_placeholder",
+    },
+    {
+        "name": "Pro",
+        "price": "$29",
+        "credits": 100,
+        "period": "one-time",
+        "features": ["100 generation runs", "Up to 1M rows/run", "CSV & Excel export", "Full trust analytics", "Priority support"],
+        "highlight": True,
+        "color": "#7c6af7",
+        "link": "https://buy.stripe.com/pro_link_placeholder",
+    },
+    {
+        "name": "Team",
+        "price": "$79",
+        "credits": 500,
+        "period": "one-time",
+        "features": ["500 generation runs", "Unlimited rows/run", "CSV & Excel export", "Full trust analytics", "Dedicated support", "Team key sharing"],
+        "highlight": False,
+        "color": "#f7a86a",
+        "link": "https://buy.stripe.com/team_link_placeholder",
+    },
+]
+
+
+def render_landing():
+    st.markdown("""
+    <style>
+    section[data-testid="stSidebar"] { display: none !important; }
+    .block-container {
+        max-width: 1024px !important;
+        margin: 0 auto !important;
+        padding-top: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    @media (min-width: 600px) {
+        .block-container {
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+            padding-top: 2rem !important;
+        }
+    }
+    </style>""", unsafe_allow_html=True)
+
+    # Hero
+    st.markdown("""
+    <style>
+    .hero-title { font-size: clamp(26px, 6vw, 44px); }
+    .hero-sub { font-size: clamp(14px, 2.5vw, 17px); }
+    .hero-badge { font-size: clamp(9px, 1.8vw, 11px); }
+    .how-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        max-width: 860px;
+        margin: 0 auto 48px;
+    }
+    @media (min-width: 560px) {
+        .how-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    </style>
+    <div style="text-align:center;padding:clamp(32px,6vw,60px) 12px 32px;">
+        <div style="display:inline-flex;align-items:center;gap:12px;margin-bottom:24px;">
+            <div style="width:42px;height:42px;background:linear-gradient(135deg,#7c6af7,#3ecfcf);
+                        clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+                        flex-shrink:0;"></div>
+            <span style="font-family:Syne,sans-serif;font-size:clamp(22px,5vw,28px);font-weight:800;
+                         background:linear-gradient(90deg,#7c6af7,#3ecfcf);
+                         -webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                DataSynthX
+            </span>
+        </div>
+        <div class="hero-badge" style="font-family:Space Mono,monospace;color:#3ecfcf;
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">
+            Privacy-Safe · Statistically Faithful · Production Ready
+        </div>
+        <h1 class="hero-title" style="font-family:Syne,sans-serif;font-weight:800;
+                   background:linear-gradient(135deg,#e8e8f0 40%,#7c6af7);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   line-height:1.15;margin:0 0 20px;">
+            Generate Synthetic Data<br>That Mirrors Reality
+        </h1>
+        <p class="hero-sub" style="font-family:Syne,sans-serif;color:#9999b0;
+                  max-width:580px;margin:0 auto 40px;line-height:1.75;padding:0 8px;">
+            Upload any dataset. DataSynthX learns its statistical DNA — distributions,
+            correlations, categories — and generates unlimited privacy-safe synthetic
+            records at any scale with measurable fidelity.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # How it works strip
+    st.markdown("""
+    <div class="how-grid">
+        <div style="background:#111118;border:1px solid #2a2a3a;border-radius:14px;
+                    padding:24px 18px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:10px;">⬆</div>
+            <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
+                        color:#e8e8f0;margin-bottom:8px;">Upload</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                Drop any CSV or Excel file. Every column is profiled automatically — numeric,
+                categorical, datetime.
+            </div>
+        </div>
+        <div style="background:#111118;border:1px solid #2a2a3a;border-top:2px solid #7c6af7;
+                    border-radius:14px;padding:24px 18px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:10px;">⬡</div>
+            <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
+                        color:#e8e8f0;margin-bottom:8px;">Generate</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                Multivariate Gaussian + frequency-preserving sampling. Scale to millions
+                of rows instantly.
+            </div>
+        </div>
+        <div style="background:#111118;border:1px solid #2a2a3a;border-radius:14px;
+                    padding:24px 18px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:10px;">⬇</div>
+            <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
+                        color:#e8e8f0;margin-bottom:8px;">Export & Verify</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                Download CSV / Excel. The SCI score validates statistical fidelity
+                across every column.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Pricing header
+    st.markdown("""
+    <div style="text-align:center;margin-bottom:36px;">
+        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Pricing</div>
+        <div style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;color:#e8e8f0;">
+            Simple, credit-based access
+        </div>
+        <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;margin-top:8px;">
+            Buy once, use at your own pace. Each generation run costs 1 credit.
+            Access key is emailed after purchase.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Pricing cards
+    p_cols = st.columns(3, gap="medium")
+    for col, plan in zip(p_cols, PLANS):
+        border_top = f"border-top:3px solid {plan['color']};" if plan["highlight"] else f"border-top:2px solid {plan['color']}55;"
+        shadow     = f"box-shadow:0 12px 48px {plan['color']}28;" if plan["highlight"] else ""
+        badge_html = (
+            f'<div style="background:rgba(124,106,247,0.15);color:#7c6af7;font-family:Space Mono,monospace;'
+            f'font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:3px 12px;'
+            f'border-radius:20px;display:inline-block;margin-bottom:14px;">★ MOST POPULAR</div>'
+            if plan["highlight"] else "<div style='height:26px;'></div>"
+        )
+        feats = "".join(
+            f'<div style="font-family:Space Mono,monospace;font-size:11px;color:#9999b0;'
+            f'padding:6px 0;border-bottom:1px solid #1e1e2a;">'
+            f'<span style="color:{plan["color"]};margin-right:8px;">✓</span>{f}</div>'
+            for f in plan["features"]
+        )
+        btn_bg  = "linear-gradient(135deg,#7c6af7,#5a4fd4)" if plan["highlight"] else "transparent"
+        btn_clr = "white" if plan["highlight"] else plan["color"]
+        with col:
+            st.markdown(f"""
+            <div style="background:#111118;border:1px solid #2a2a3a;{border_top}
+                        border-radius:16px;padding:32px 24px 28px;{shadow}height:100%;box-sizing:border-box;">
+                {badge_html}
+                <div style="font-family:Syne,sans-serif;font-size:19px;font-weight:800;
+                            color:#e8e8f0;margin-bottom:6px;">{plan["name"]}</div>
+                <div style="font-family:Syne,sans-serif;font-size:44px;font-weight:800;
+                            color:{plan["color"]};line-height:1;margin:10px 0 4px;">{plan["price"]}</div>
+                <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                            margin-bottom:22px;">{plan["credits"]} credits · {plan["period"]}</div>
+                <div style="margin-bottom:28px;">{feats}</div>
+                <a href="{plan["link"]}" target="_blank" rel="noopener" style="
+                    display:block;text-align:center;padding:13px 20px;
+                    background:{btn_bg};border:1.5px solid {plan["color"]};
+                    border-radius:10px;color:{btn_clr};font-family:Syne,sans-serif;
+                    font-weight:700;font-size:14px;text-decoration:none;
+                    letter-spacing:0.4px;">
+                    Get {plan["name"]} Access →
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Access key entry
+    st.markdown("""
+    <div style="text-align:center;margin-top:64px;margin-bottom:20px;">
+        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">
+            Already have an access key?
+        </div>
+        <div style="font-family:Space Mono,monospace;font-size:11px;color:#3a3a50;">
+            Your key is emailed to you after purchase.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    _, c, _ = st.columns([1, 2, 1])
+    with c:
+        key_input = st.text_input(
+            "Access Key",
+            placeholder="DSX-XXXX-XXXX-XXXX",
+            label_visibility="collapsed",
+            key="landing_key_input",
+        )
+        enter_btn = st.button("⬡ Enter DataSynthX", type="primary", use_container_width=True)
+
+        if enter_btn:
+            if not key_input.strip():
+                st.error("Please enter your access key.")
+            else:
+                with st.spinner("Validating key…"):
+                    row = validate_key(key_input.strip())
+                if row is None:
+                    st.error("Invalid access key. Please check and try again.")
+                elif str(row.get("status", "active")).lower() == "revoked":
+                    st.error("This access key has been revoked. Please contact support.")
+                elif int(row.get(COL_CREDITS, 0)) <= 0:
+                    st.error("Your key has 0 credits remaining. Purchase a plan above to top up.")
+                else:
+                    st.session_state["authenticated"] = True
+                    st.session_state["access_key"]    = key_input.strip()
+                    st.session_state["key_owner"]     = row.get(COL_OWNER, "User")
+                    st.session_state["key_plan"]      = row.get(COL_PLAN, "—")
+                    st.session_state["credits"]       = int(row.get(COL_CREDITS, 0))
+                    st.rerun()
+
+    st.markdown("""
+    <div style="text-align:center;font-family:Space Mono,monospace;font-size:10px;
+                color:#2e2e3e;margin-top:56px;letter-spacing:1px;padding-bottom:40px;">
+        © 2025 DataSynthX · Privacy-first synthetic data
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─── Auth gate ────────────────────────────────────────────────────────────────
+if not st.session_state.get("authenticated", False):
+    render_landing()
+    st.stop()
+
+# Refresh live credit balance on every authenticated load
+_live_credits = get_credits(st.session_state["access_key"])
+st.session_state["credits"] = _live_credits
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  CORE ENGINES
+# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════
+
+class DataProfiler:
+    """Compute statistical profile of uploaded dataset."""
+
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        self.categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+        # Try to parse datetime columns
+        self.datetime_cols = []
+        for col in self.categorical_cols[:]:
+            try:
+                parsed = pd.to_datetime(df[col], infer_datetime_format=True, errors='coerce')
+                if parsed.notna().sum() > len(df) * 0.7:
+                    self.datetime_cols.append(col)
+                    self.categorical_cols.remove(col)
+            except Exception:
+                pass
+
+    def profile(self) -> dict:
+        p = {}
+        # Numeric stats
+        p['numeric_stats'] = {}
+        for col in self.numeric_cols:
+            s = self.df[col].dropna()
+            p['numeric_stats'][col] = {
+                'mean': float(s.mean()),
+                'std': float(s.std()),
+                'variance': float(s.var()),
+                'min': float(s.min()),
+                'max': float(s.max()),
+                'skew': float(s.skew()),
+                'kurtosis': float(s.kurtosis()),
+                'missing_ratio': float(self.df[col].isna().mean()),
+                'values': s.values
+            }
+
+        # Categorical stats
+        p['categorical_stats'] = {}
+        for col in self.categorical_cols:
+            s = self.df[col].dropna()
+            freq = s.value_counts(normalize=True)
+            p['categorical_stats'][col] = {
+                'frequencies': freq.to_dict(),
+                'n_unique': int(s.nunique()),
+                'missing_ratio': float(self.df[col].isna().mean()),
+                'mode': str(s.mode().iloc[0]) if len(s) > 0 else None
+            }
+
+        # Correlation matrix
+        if len(self.numeric_cols) >= 2:
+            p['correlation_matrix'] = self.df[self.numeric_cols].corr().fillna(0)
+        else:
+            p['correlation_matrix'] = pd.DataFrame()
+
+        p['shape'] = self.df.shape
+        p['numeric_cols'] = self.numeric_cols
+        p['categorical_cols'] = self.categorical_cols
+        p['datetime_cols'] = self.datetime_cols
+        p['missing_overview'] = self.df.isna().mean().to_dict()
+
+        return p
+
+
+class SyntheticDataGenerator:
+    """Generate synthetic data preserving statistical structure."""
+
+    def __init__(self, df: pd.DataFrame, profile: dict):
+        self.df = df
+        self.profile = profile
+        self.numeric_cols = profile['numeric_cols']
+        self.categorical_cols = profile['categorical_cols']
+
+    def generate(self, n_rows: int, noise_level: float = 0.02) -> pd.DataFrame:
+        synthetic = {}
+
+        # ── Numeric: Multivariate Gaussian ──────────────────────────────
+        if self.numeric_cols:
+            clean = self.df[self.numeric_cols].dropna()
+            n_num = len(self.numeric_cols)
+            if len(clean) >= 2:
+                # Use fillna(0) + .copy() so NaN-heavy datasets don't produce
+                # a read-only NaN matrix that crashes np.eye addition downstream.
+                mean_vec = clean.mean().fillna(0).values
+                cov_matrix = clean.cov().fillna(0).values.copy()
+                # Ensure strictly 2-D square array before adding identity matrix.
+                # Guards against: read-only arrays, scalar from single-column cov(),
+                # and shape mismatches.
+                cov_matrix = np.atleast_2d(cov_matrix).reshape(n_num, n_num)
+                cov_matrix += np.eye(n_num) * 1e-8
+
+                try:
+                    samples = np.random.multivariate_normal(mean_vec, cov_matrix, n_rows)
+                except (np.linalg.LinAlgError, ValueError):
+                    # Fallback: independent per-column sampling (catches both
+                    # LinAlgError from bad matrices AND ValueError from NaN cov)
+                    samples = np.column_stack([
+                        np.random.normal(
+                            self.profile['numeric_stats'][c]['mean'],
+                            max(self.profile['numeric_stats'][c]['std'], 1e-6),
+                            n_rows
+                        ) for c in self.numeric_cols
+                    ])
+                # Ensure samples is always 2-D (edge case: single column)
+                samples = np.atleast_2d(samples).reshape(n_rows, n_num)
+
+                # Add controlled noise
+                noise = np.random.normal(0, noise_level, samples.shape)
+                noise *= np.std(samples, axis=0, keepdims=True)
+                samples = samples + noise
+
+                # Clip to [min, max] of original
+                for i, col in enumerate(self.numeric_cols):
+                    stats_c = self.profile['numeric_stats'][col]
+                    col_range = stats_c['max'] - stats_c['min']
+                    lo = stats_c['min'] - col_range * 0.05
+                    hi = stats_c['max'] + col_range * 0.05
+                    samples[:, i] = np.clip(samples[:, i], lo, hi)
+
+                    # Preserve integer dtype if original was integer
+                    orig_dtype = self.df[col].dtype
+                    if np.issubdtype(orig_dtype, np.integer):
+                        synthetic[col] = np.round(samples[:, i]).astype(int)
+                    else:
+                        synthetic[col] = samples[:, i]
+            else:
+                # Too few rows — independent sampling
+                for col in self.numeric_cols:
+                    s = self.profile['numeric_stats'][col]
+                    synthetic[col] = np.random.normal(s['mean'], max(s['std'], 1e-6), n_rows)
+
+        # ── Categorical: Frequency-preserving sampling ───────────────────
+        for col in self.categorical_cols:
+            cat_stats = self.profile['categorical_stats'][col]
+            categories = list(cat_stats['frequencies'].keys())
+            probs = list(cat_stats['frequencies'].values())
+            # Normalize probs
+            probs = np.array(probs, dtype=float)
+            probs /= probs.sum()
+            synthetic[col] = np.random.choice(categories, size=n_rows, p=probs)
+
+        # ── Inject missing values proportionally ────────────────────────
+        for col in self.numeric_cols + self.categorical_cols:
+            missing_ratio = self.profile['missing_overview'].get(col, 0)
+            if missing_ratio > 0:
+                mask = np.random.rand(n_rows) < missing_ratio
+                synth_series = pd.Series(synthetic[col])
+                synth_series[mask] = np.nan
+                synthetic[col] = synth_series.values
+
+        synth_df = pd.DataFrame(synthetic)
+        # Restore original column order where possible
+        orig_cols = [c for c in self.df.columns if c in synth_df.columns]
+        return synth_df[orig_cols]
+
+
+class TrustMetrics:
+    """Compute trust / fidelity metrics between original and synthetic data."""
+
+    def __init__(self, original: pd.DataFrame, synthetic: pd.DataFrame, profile: dict):
+        self.orig = original
+        self.synth = synthetic
+        self.profile = profile
+        self.numeric_cols = profile['numeric_cols']
+        self.categorical_cols = profile['categorical_cols']
+
+    def correlation_preservation_score(self) -> tuple[float, pd.DataFrame, pd.DataFrame]:
+        if len(self.numeric_cols) < 2:
+            return 1.0, pd.DataFrame(), pd.DataFrame()
+        orig_corr = self.orig[self.numeric_cols].corr().fillna(0)
+        synth_corr = self.synth[self.numeric_cols].corr().fillna(0)
+        diff = np.abs(orig_corr.values - synth_corr.values)
+        score = max(0.0, 1.0 - diff.mean())
+        return float(score), orig_corr, synth_corr
+
+    def distribution_similarity_scores(self) -> dict:
+        scores = {}
+        for col in self.numeric_cols:
+            a = self.orig[col].dropna().values
+            b = self.synth[col].dropna().values
+            if len(a) < 2 or len(b) < 2:
+                scores[col] = {'ks_stat': 0, 'ks_pvalue': 1, 'wasserstein': 0, 'score': 1.0}
+                continue
+            ks_stat, ks_p = ks_2samp(a, b)
+            # Normalize Wasserstein by std of original
+            std_a = np.std(a)
+            w_dist = wasserstein_distance(a, b) / (std_a + 1e-9)
+            score = max(0.0, 1.0 - ks_stat)
+            scores[col] = {
+                'ks_stat': float(ks_stat),
+                'ks_pvalue': float(ks_p),
+                'wasserstein': float(w_dist),
+                'score': float(score)
+            }
+        return scores
+
+    def categorical_fidelity_scores(self) -> dict:
+        scores = {}
+        for col in self.categorical_cols:
+            orig_freq = self.orig[col].value_counts(normalize=True)
+            synth_freq = self.synth[col].value_counts(normalize=True)
+            all_cats = set(orig_freq.index) | set(synth_freq.index)
+            p = np.array([orig_freq.get(c, 1e-10) for c in all_cats])
+            q = np.array([synth_freq.get(c, 1e-10) for c in all_cats])
+            p /= p.sum(); q /= q.sum()
+            # KL divergence (clipped)
+            kl_div = float(np.sum(p * np.log((p + 1e-10) / (q + 1e-10))))
+            kl_div = min(kl_div, 10.0)
+            score = max(0.0, 1.0 - kl_div / 10.0)
+            scores[col] = {
+                'kl_divergence': kl_div,
+                'score': float(score),
+                'orig_freq': orig_freq.to_dict(),
+                'synth_freq': synth_freq.to_dict()
+            }
+        return scores
+
+    def compute_sci(self) -> dict:
+        """Structural Consistency Index — weighted composite score 0–100."""
+        corr_score, orig_corr, synth_corr = self.correlation_preservation_score()
+        dist_scores = self.distribution_similarity_scores()
+        cat_scores = self.categorical_fidelity_scores()
+
+        avg_dist = np.mean([v['score'] for v in dist_scores.values()]) if dist_scores else 1.0
+        avg_cat = np.mean([v['score'] for v in cat_scores.values()]) if cat_scores else 1.0
+
+        # Weights
+        w_corr, w_dist, w_cat = 0.30, 0.40, 0.30
+        if not dist_scores: w_corr, w_dist, w_cat = 0.40, 0.0, 0.60
+        if not cat_scores: w_corr, w_dist, w_cat = 0.35, 0.65, 0.0
+        if not dist_scores and not cat_scores: w_corr, w_dist, w_cat = 1.0, 0.0, 0.0
+
+        sci_raw = w_corr * corr_score + w_dist * avg_dist + w_cat * avg_cat
+        sci = round(sci_raw * 100, 1)
+
+        return {
+            'sci': sci,
+            'correlation_score': round(corr_score * 100, 1),
+            'distribution_score': round(avg_dist * 100, 1),
+            'categorical_score': round(avg_cat * 100, 1),
+            'orig_corr': orig_corr,
+            'synth_corr': synth_corr,
+            'dist_scores': dist_scores,
+            'cat_scores': cat_scores,
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  HELPERS
+# ═══════════════════════════════════════════════════════════════════════════
+
+def score_color(score: float) -> str:
+    if score >= 85: return "#3ecfcf"
+    if score >= 65: return "#7c6af7"
+    return "#f76a6a"
+
+def score_badge(score: float) -> str:
+    if score >= 85: return "badge-green", "EXCELLENT"
+    if score >= 65: return "badge-purple", "GOOD"
+    return "badge-red", "NEEDS REVIEW"
+
+def make_heatmap_html(corr_df: pd.DataFrame, title: str) -> str:
+    """Build a simple HTML heatmap without Plotly dependency issues.
+
+    Safely handles large correlation matrices by capping at MAX_COLS columns
+    so the SVG never overflows or truncates.  A notice is shown when columns
+    are trimmed.
+    """
+    MAX_COLS = 12  # beyond this the cells become unreadably small at 100 % width
+
+    cols = list(corr_df.columns)
+    n_total = len(cols)
+    if n_total == 0:
+        return ("<p style='color:#6b6b80;font-family:Space Mono,monospace;font-size:12px'>"
+                "Not enough numeric columns for correlation.</p>")
+
+    # ── Cap columns to keep the heatmap renderable ──────────────────────────
+    truncated = n_total > MAX_COLS
+    cols = cols[:MAX_COLS]
+    n = len(cols)
+    corr_df = corr_df.loc[cols, cols]   # square subset
+
+    # Fixed cell size that fits comfortably inside a Streamlit column (~480 px)
+    LABEL_OFFSET = 80   # px reserved on left and top for axis labels
+    MAX_SVG      = 460  # maximum usable width / height in px
+    cell_size    = max(28, min(56, (MAX_SVG - LABEL_OFFSET) // n))
+
+    svg_w = cell_size * n + LABEL_OFFSET
+    svg_h = cell_size * n + LABEL_OFFSET
+
+    cells_html = ""
+    for i, row in enumerate(cols):
+        for j, col in enumerate(cols):
+            val = float(corr_df.loc[row, col])
+            val = max(-1.0, min(1.0, val))   # clamp to [-1, 1] defensively
+            if val > 0:
+                r = int(124 * val)
+                g = int(106 * val)
+                b = int(247 * val + 100 * (1 - val))
+            else:
+                r = int(247 * (-val))
+                g = int(106 * (-val))
+                b = int(106 * (-val))
+            bg       = f"rgb({r},{g},{b})"
+            text_col = "white" if abs(val) > 0.3 else "#6b6b80"
+            x = j * cell_size + LABEL_OFFSET
+            y = i * cell_size + LABEL_OFFSET
+            # Only render the value label when cells are big enough to fit text
+            val_label = (f'<text x="{x + cell_size//2}" y="{y + cell_size//2 + 4}" '
+                         f'text-anchor="middle" font-size="10" fill="{text_col}" '
+                         f'font-family="Space Mono,monospace">{val:.2f}</text>'
+                         if cell_size >= 36 else "")
+            cells_html += (
+                f'<rect x="{x}" y="{y}" width="{cell_size - 2}" height="{cell_size - 2}" '
+                f'rx="3" fill="{bg}" opacity="0.85"/>'
+                + val_label
+            )
+
+    # Truncate labels to fit inside the cell; tighter truncation for small cells
+    max_lbl = max(4, cell_size // 7)
+    labels_x = "".join(
+        f'<text x="{j * cell_size + LABEL_OFFSET + cell_size // 2}" y="{LABEL_OFFSET - 8}" '
+        f'text-anchor="middle" font-size="10" fill="#6b6b80" '
+        f'font-family="Syne,sans-serif" transform="rotate(-35 '
+        f'{j * cell_size + LABEL_OFFSET + cell_size // 2} {LABEL_OFFSET - 8})">'
+        f'{c[:max_lbl]}</text>'
+        for j, c in enumerate(cols)
+    )
+    labels_y = "".join(
+        f'<text x="{LABEL_OFFSET - 6}" y="{i * cell_size + LABEL_OFFSET + cell_size // 2 + 4}" '
+        f'text-anchor="end" font-size="10" fill="#6b6b80" font-family="Syne,sans-serif">'
+        f'{c[:max_lbl]}</text>'
+        for i, c in enumerate(cols)
+    )
+
+    truncated_notice = (
+        f'<div style="font-family:Space Mono,monospace;font-size:10px;color:#f76a6a;'
+        f'margin-top:8px;">⚠ Showing first {MAX_COLS} of {n_total} columns</div>'
+        if truncated else ""
+    )
+
+    return (
+        f'<div style="background:#111118;border:1px solid #2a2a3a;border-radius:12px;'
+        f'padding:16px;margin-bottom:8px;">'
+        f'<div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;'
+        f'letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">{title}</div>'
+        f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">'
+        f'<svg width="{svg_w}" height="{svg_h}" viewBox="0 0 {svg_w} {svg_h}" '
+        f'xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:{svg_w}px;">'
+        f'{labels_x}{labels_y}{cells_html}'
+        f'</svg></div>'
+        f'{truncated_notice}'
+        f'</div>'
+    )
+
+
+def to_excel_bytes(df: pd.DataFrame) -> bytes:
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='SyntheticData')
+        wb = writer.book
+        ws = writer.sheets['SyntheticData']
+        header_fmt = wb.add_format({'bold': True, 'bg_color': '#1a1a24', 'font_color': '#7c6af7', 'border': 1})
+        for ci, col in enumerate(df.columns):
+            ws.write(0, ci, col, header_fmt)
+            ws.set_column(ci, ci, max(12, len(str(col)) + 4))
+    return buf.getvalue()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  SIDEBAR
+# ═══════════════════════════════════════════════════════════════════════════
+
+with st.sidebar:
+    # ── Brand + user info ────────────────────────────────────────────────────
+    owner   = st.session_state.get("key_owner", "User")
+    plan    = st.session_state.get("key_plan", "—")
+    credits = st.session_state.get("credits", 0)
+    cred_color = "#3ecfcf" if credits > 10 else ("#f7a86a" if credits > 3 else "#f76a6a")
+
+    st.markdown(f"""
+    <div class="brand-header">
+        <div class="brand-logo"></div>
+        <div>
+            <div class="brand-name">DataSynthX</div>
+            <div class="brand-tag">Synthetic Data Platform</div>
+        </div>
+    </div>
+    <div style="background:#0f0f18;border:1px solid #2a2a3a;border-radius:10px;
+                padding:12px 14px;margin-bottom:20px;">
+        <div style="font-family:Space Mono,monospace;font-size:9px;color:#6b6b80;
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Account</div>
+        <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;
+                    color:#e8e8f0;margin-bottom:2px;">{owner}</div>
+        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                    margin-bottom:10px;">{plan} plan</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;">
+                Credits remaining
+            </div>
+            <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;
+                        color:{cred_color};">{credits}</div>
+        </div>
+        <div style="background:#1a1a24;border-radius:4px;height:4px;margin-top:6px;overflow:hidden;">
+            <div style="background:{cred_color};height:4px;width:{min(100, credits)}%;
+                        border-radius:4px;transition:width 0.4s;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("↩ Sign Out", use_container_width=True):
+        for k in ["authenticated","access_key","key_owner","key_plan","credits",
+                  "synth_df","trust_metrics","gen_status"]:
+            st.session_state.pop(k, None)
+        st.rerun()
+
+    st.markdown('<div class="section-title">⬆ Upload Dataset</div>', unsafe_allow_html=True)
+    uploaded_file = st.file_uploader(
+        "CSV or Excel",
+        type=["csv", "xlsx", "xls"],
+        label_visibility="collapsed"
+    )
+
+    st.markdown("---")
+    st.markdown('<div class="section-title">⚙ Generation Config</div>', unsafe_allow_html=True)
+
+    n_rows = st.number_input(
+        "Target rows to generate",
+        min_value=10,
+        max_value=1_000_000,
+        value=1000,
+        step=100,
+        help="Number of synthetic rows to generate"
+    )
+
+    noise_level = st.slider(
+        "Noise level",
+        min_value=0.0,
+        max_value=0.20,
+        value=0.02,
+        step=0.01,
+        help="Gaussian noise added to numeric columns (fraction of std)"
+    )
+
+    st.markdown("---")
+    generate_btn = st.button("⬡ Generate Synthetic Data", type="primary")
+
+    # ── Persistent generation status label ──────────────────────────────────
+    gen_status = st.session_state.get("gen_status")
+    if gen_status == "done":
+        sci_val = st.session_state.get("trust_metrics", {}).get("sci", "—")
+        n_synth = len(st.session_state.get("synth_df", []))
+        st.markdown(
+            f'<div style="background:rgba(62,207,207,0.08);border:1px solid rgba(62,207,207,0.25);'
+            f'border-radius:8px;padding:10px 12px;margin-top:8px;">'
+            f'<div style="font-family:Space Mono,monospace;font-size:10px;color:#3ecfcf;'
+            f'letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">✓ Generation Complete</div>'
+            f'<div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;line-height:1.7;">'
+            f'{n_synth:,} rows generated<br>SCI Score: <span style="color:#3ecfcf;font-weight:700;">'
+            f'{sci_val}/100</span></div></div>',
+            unsafe_allow_html=True,
+        )
+    elif gen_status == "error":
+        st.markdown(
+            '<div style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.25);'
+            'border-radius:8px;padding:10px 12px;margin-top:8px;">'
+            '<div style="font-family:Space Mono,monospace;font-size:10px;color:#f76a6a;'
+            'letter-spacing:1.5px;text-transform:uppercase;">✗ Generation Failed</div>'
+            '<div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;margin-top:4px;">'
+            'Check your dataset and retry.</div></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
+    st.markdown("""
+    <div style="font-family:Space Mono,monospace;font-size:10px;color:#3a3a4a;letter-spacing:1px;text-transform:uppercase;line-height:2;">
+        v1.0.0 · DataSynthX<br>
+        Multivariate Gaussian<br>
+        Freq-Preserving Sampling<br>
+        KS · Wasserstein · KL
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  MAIN CONTENT
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Hero header
+st.markdown("""
+<div style="padding: clamp(20px,4vw,40px) 0 20px;">
+    <div style="font-family:Space Mono,monospace;font-size:10px;color:#3ecfcf;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">
+        AI-POWERED · STATISTICAL FIDELITY · PRODUCTION READY
+    </div>
+    <h1 style="font-family:Syne,sans-serif;font-size:clamp(26px,5vw,42px);font-weight:800;margin:0;line-height:1.1;
+               background:linear-gradient(90deg,#e8e8f0,#7c6af7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+        Synthetic Data<br>Generation Platform
+    </h1>
+    <p style="color:#6b6b80;font-size:clamp(13px,2vw,15px);margin-top:10px;font-family:Syne,sans-serif;max-width:600px;">
+        Upload your dataset → Learn its structure → Generate privacy-safe synthetic data at any scale
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+if uploaded_file is None:
+    # Empty state
+    st.markdown("""
+    <div style="border:2px dashed #2a2a3a;border-radius:16px;padding:60px;text-align:center;margin-top:20px;">
+        <div style="font-size:48px;margin-bottom:16px;">⬡</div>
+        <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">
+            No Dataset Loaded
+        </div>
+        <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;line-height:1.8;">
+            Upload a CSV or Excel file in the sidebar to begin.<br>
+            DataSynthX will profile your data and generate<br>
+            statistically faithful synthetic records at any scale.
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:32px;">
+        <div class="metric-card">
+            <div class="metric-label">Step 01</div>
+            <div style="font-size:20px;font-weight:700;color:#7c6af7;margin:8px 0;">Upload & Profile</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                Auto-detects numeric, categorical & datetime columns. Computes distributions, correlations and missing value ratios.
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Step 02</div>
+            <div style="font-size:20px;font-weight:700;color:#3ecfcf;margin:8px 0;">Generate at Scale</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                Multivariate Gaussian synthesis preserves correlations. Frequency-weighted categorical sampling. Up to 1M rows.
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Step 03</div>
+            <div style="font-size:20px;font-weight:700;color:#f76a6a;margin:8px 0;">Trust Metrics</div>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+                KS-test, Wasserstein distance, KL divergence and a composite Structural Consistency Index (SCI) 0–100.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.stop()
+
+
+# ─── Load Data ──────────────────────────────────────────────────────────────
+@st.cache_data
+def load_data(file):
+    if file.name.endswith('.csv'):
+        return pd.read_csv(file)
+    else:
+        return pd.read_excel(file)
+
+try:
+    df = load_data(uploaded_file)
+except Exception as e:
+    st.error(f"Failed to load file: {e}")
+    st.stop()
+
+# ─── Profile ────────────────────────────────────────────────────────────────
+profiler = DataProfiler(df)
+profile = profiler.profile()
+
+numeric_cols = profile['numeric_cols']
+categorical_cols = profile['categorical_cols']
+datetime_cols = profile['datetime_cols']
+
+# ─── Quick Stats Row ────────────────────────────────────────────────────────
+c1, c2, c3, c4, c5 = st.columns(5)
+cols_data = [
+    (c1, str(df.shape[0]), "Original Rows", "#7c6af7"),
+    (c2, str(df.shape[1]), "Total Columns", "#3ecfcf"),
+    (c3, str(len(numeric_cols)), "Numeric Cols", "#7c6af7"),
+    (c4, str(len(categorical_cols)), "Categorical Cols", "#3ecfcf"),
+    (c5, f"{df.isna().mean().mean()*100:.1f}%", "Missing Rate", "#f76a6a"),
+]
+for col, val, label, color in cols_data:
+    with col:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">{label}</div>
+            <div class="metric-value" style="color:{color}">{val}</div>
+        </div>""", unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  TABS
+# ═══════════════════════════════════════════════════════════════════════════
+
+tab1, tab2, tab3, tab4 = st.tabs(["📊  Data Profile", "🧬  Synthetic Data", "📐  Trust Metrics", "⬇  Export"])
+
+# ──────────────────────────────────────────────────────────────────────────
+# TAB 1: DATA PROFILE
+# ──────────────────────────────────────────────────────────────────────────
+with tab1:
+    st.markdown('<div class="section-title">Original Dataset Preview</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-sub">First 100 rows of uploaded data</div>', unsafe_allow_html=True)
+    st.dataframe(df.head(100), use_container_width=True, height=240)
+
+    if numeric_cols:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Numeric Column Statistics</div>', unsafe_allow_html=True)
+        stats_rows = []
+        for col in numeric_cols:
+            s = profile['numeric_stats'][col]
+            stats_rows.append({
+                'Column': col,
+                'Mean': f"{s['mean']:.4f}",
+                'Std Dev': f"{s['std']:.4f}",
+                'Min': f"{s['min']:.4f}",
+                'Max': f"{s['max']:.4f}",
+                'Skewness': f"{s['skew']:.4f}",
+                'Kurtosis': f"{s['kurtosis']:.4f}",
+                'Missing %': f"{s['missing_ratio']*100:.1f}%"
+            })
+        st.dataframe(pd.DataFrame(stats_rows), use_container_width=True, hide_index=True)
+
+    if categorical_cols:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Categorical Column Summary</div>', unsafe_allow_html=True)
+        cat_rows = []
+        for col in categorical_cols:
+            s = profile['categorical_stats'][col]
+            top = sorted(s['frequencies'].items(), key=lambda x: -x[1])[:3]
+            cat_rows.append({
+                'Column': col,
+                'Unique Values': s['n_unique'],
+                'Mode': s['mode'],
+                'Top 3 Categories': ', '.join([f"{k} ({v*100:.1f}%)" for k, v in top]),
+                'Missing %': f"{s['missing_ratio']*100:.1f}%"
+            })
+        st.dataframe(pd.DataFrame(cat_rows), use_container_width=True, hide_index=True)
+
+    if not profile['correlation_matrix'].empty:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Correlation Matrix</div>', unsafe_allow_html=True)
+        st.markdown(make_heatmap_html(profile['correlation_matrix'], "ORIGINAL DATA — PEARSON CORRELATION"), unsafe_allow_html=True)
+
+    # Distribution histograms
+    if numeric_cols:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Distribution Histograms</div>', unsafe_allow_html=True)
+        cols_per_row = 3
+        for i in range(0, len(numeric_cols), cols_per_row):
+            row_cols = st.columns(cols_per_row)
+            for j, col in enumerate(numeric_cols[i:i+cols_per_row]):
+                with row_cols[j]:
+                    vals = df[col].dropna()
+                    hist, edges = np.histogram(vals, bins=30)
+                    max_h = max(hist)
+                    bar_width = 100 / len(hist)
+                    bars = "".join([
+                        f'<rect x="{k*bar_width:.1f}%" y="{100 - h/max_h*100:.1f}%" '
+                        f'width="{bar_width*0.85:.1f}%" height="{h/max_h*100:.1f}%" '
+                        f'fill="url(#grad)" rx="1"/>'
+                        for k, h in enumerate(hist)
+                    ])
+                    st.markdown(f"""
+                    <div style="background:#111118;border:1px solid #2a2a3a;border-radius:10px;padding:14px;">
+                        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;letter-spacing:1px;margin-bottom:8px;">{col}</div>
+                        <svg width="100%" height="80" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#7c6af7"/>
+                                    <stop offset="100%" stop-color="#3ecfcf" stop-opacity="0.5"/>
+                                </linearGradient>
+                            </defs>
+                            {bars}
+                        </svg>
+                        <div style="display:flex;justify-content:space-between;font-family:Space Mono,monospace;font-size:9px;color:#3a3a4a;margin-top:4px;">
+                            <span>{vals.min():.2f}</span><span>{vals.max():.2f}</span>
+                        </div>
+                    </div>""", unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# TAB 2: SYNTHETIC DATA
+# ──────────────────────────────────────────────────────────────────────────
+with tab2:
+    if 'synth_df' not in st.session_state:
+        st.markdown("""
+        <div style="text-align:center;padding:60px 20px;">
+            <div style="font-size:40px;margin-bottom:12px;">🧬</div>
+            <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">
+                Ready to Generate
+            </div>
+            <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;">
+                Configure settings in the sidebar and click<br><strong style="color:#7c6af7">Generate Synthetic Data</strong>
+            </div>
+        </div>""", unsafe_allow_html=True)
+    else:
+        synth_df = st.session_state['synth_df']
+        st.markdown('<div class="section-title">Synthetic Dataset Preview</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-sub">{len(synth_df):,} rows generated · {synth_df.shape[1]} columns</div>', unsafe_allow_html=True)
+        st.dataframe(synth_df.head(100), use_container_width=True, height=280)
+
+        # Side-by-side summary
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Original vs Synthetic — Summary Comparison</div>', unsafe_allow_html=True)
+
+        if numeric_cols:
+            compare_rows = []
+            for col in numeric_cols:
+                o = df[col].dropna()
+                s = synth_df[col].dropna()
+                compare_rows.append({
+                    'Column': col,
+                    'Orig Mean': f"{o.mean():.4f}",
+                    'Synth Mean': f"{s.mean():.4f}",
+                    'Orig Std': f"{o.std():.4f}",
+                    'Synth Std': f"{s.std():.4f}",
+                    'Orig Min': f"{o.min():.4f}",
+                    'Synth Min': f"{s.min():.4f}",
+                    'Orig Max': f"{o.max():.4f}",
+                    'Synth Max': f"{s.max():.4f}",
+                })
+            st.dataframe(pd.DataFrame(compare_rows), use_container_width=True, hide_index=True)
+
+        # Overlay histograms
+        if numeric_cols:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Distribution Overlay — Original vs Synthetic</div>', unsafe_allow_html=True)
+            cols_per_row = 3
+            for i in range(0, len(numeric_cols), cols_per_row):
+                row_cols = st.columns(cols_per_row)
+                for j, col in enumerate(numeric_cols[i:i+cols_per_row]):
+                    with row_cols[j]:
+                        o_vals = df[col].dropna()
+                        s_vals = synth_df[col].dropna()
+                        all_min = min(o_vals.min(), s_vals.min())
+                        all_max = max(o_vals.max(), s_vals.max())
+                        bins = np.linspace(all_min, all_max, 31)
+                        o_hist, _ = np.histogram(o_vals, bins=bins)
+                        s_hist, _ = np.histogram(s_vals, bins=bins)
+                        max_h = max(o_hist.max(), s_hist.max(), 1)
+                        bw = 100 / len(o_hist)
+
+                        o_bars = "".join([
+                            f'<rect x="{k*bw:.1f}%" y="{100 - h/max_h*100:.1f}%" '
+                            f'width="{bw*0.85:.1f}%" height="{h/max_h*100:.1f}%" '
+                            f'fill="#7c6af7" opacity="0.7" rx="1"/>'
+                            for k, h in enumerate(o_hist)
+                        ])
+                        s_bars = "".join([
+                            f'<rect x="{k*bw:.1f}%" y="{100 - h/max_h*100:.1f}%" '
+                            f'width="{bw*0.85:.1f}%" height="{h/max_h*100:.1f}%" '
+                            f'fill="#3ecfcf" opacity="0.5" rx="1"/>'
+                            for k, h in enumerate(s_hist)
+                        ])
+                        st.markdown(f"""
+                        <div style="background:#111118;border:1px solid #2a2a3a;border-radius:10px;padding:14px;">
+                            <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;letter-spacing:1px;margin-bottom:4px;">{col}</div>
+                            <div style="display:flex;gap:12px;font-family:Space Mono,monospace;font-size:9px;margin-bottom:6px;">
+                                <span style="color:#7c6af7">■ Original</span>
+                                <span style="color:#3ecfcf">■ Synthetic</span>
+                            </div>
+                            <svg width="100%" height="80" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                {o_bars}{s_bars}
+                            </svg>
+                        </div>""", unsafe_allow_html=True)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# TAB 3: TRUST METRICS
+# ──────────────────────────────────────────────────────────────────────────
+with tab3:
+    if 'trust_metrics' not in st.session_state:
+        st.markdown("""
+        <div style="text-align:center;padding:60px 20px;">
+            <div style="font-size:40px;margin-bottom:12px;">📐</div>
+            <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">
+                Awaiting Generation
+            </div>
+            <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;">
+                Generate synthetic data first to see trust metrics.
+            </div>
+        </div>""", unsafe_allow_html=True)
+    else:
+        tm = st.session_state['trust_metrics']
+        sci = tm['sci']
+        color = score_color(sci)
+        badge_cls, badge_label = score_badge(sci)
+
+        # SCI Hero
+        pct = sci / 100
+        circumference = 2 * 3.14159 * 54
+        dash = circumference * pct
+        gap = circumference - dash
+
+        st.markdown(f"""
+        <div class="sci-container" style="margin-bottom:24px;">
+            <div class="metric-label" style="margin-bottom:16px;">STRUCTURAL CONSISTENCY INDEX</div>
+            <svg width="160" height="160" viewBox="0 0 120 120" style="display:block;margin:0 auto 12px;">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#1a1a24" stroke-width="10"/>
+                <circle cx="60" cy="60" r="54" fill="none" stroke="{color}" stroke-width="10"
+                    stroke-dasharray="{dash:.1f} {gap:.1f}"
+                    stroke-dashoffset="{circumference/4:.1f}"
+                    stroke-linecap="round"/>
+                <text x="60" y="56" text-anchor="middle" font-size="28" font-weight="800"
+                      fill="{color}" font-family="Syne,sans-serif">{sci}</text>
+                <text x="60" y="72" text-anchor="middle" font-size="10"
+                      fill="#6b6b80" font-family="Space Mono,monospace">/ 100</text>
+            </svg>
+            <span class="badge {badge_cls}">{badge_label}</span>
+            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;margin-top:12px;">
+                Weighted composite of correlation, distribution and categorical fidelity scores
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Sub-scores
+        c1, c2, c3 = st.columns(3)
+        sub_scores = [
+            (c1, "Correlation Preservation", tm['correlation_score'], "30% weight · Pearson matrix comparison"),
+            (c2, "Distribution Similarity", tm['distribution_score'], "40% weight · KS-test · Wasserstein"),
+            (c3, "Categorical Fidelity", tm['categorical_score'], "30% weight · KL Divergence"),
+        ]
+        for col, label, score, note in sub_scores:
+            with col:
+                clr = score_color(score)
+                st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-label">{label}</div>
+                    <div class="metric-value" style="color:{clr}">{score}</div>
+                    <div class="metric-sub">{note}</div>
+                </div>""", unsafe_allow_html=True)
+
+        # Correlation heatmaps
+        if not tm['orig_corr'].empty:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Correlation Matrix Comparison</div>', unsafe_allow_html=True)
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown(make_heatmap_html(tm['orig_corr'], "ORIGINAL DATA"), unsafe_allow_html=True)
+            with col_b:
+                st.markdown(make_heatmap_html(tm['synth_corr'], "SYNTHETIC DATA"), unsafe_allow_html=True)
+
+        # Distribution scores table
+        if tm['dist_scores']:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Per-Column Distribution Metrics</div>', unsafe_allow_html=True)
+            dist_rows = []
+            for col_name, v in tm['dist_scores'].items():
+                badge_c, badge_t = score_badge(v['score'] * 100)
+                dist_rows.append({
+                    'Column': col_name,
+                    'KS Statistic': f"{v['ks_stat']:.4f}",
+                    'KS p-value': f"{v['ks_pvalue']:.4f}",
+                    'Wasserstein (norm.)': f"{v['wasserstein']:.4f}",
+                    'Fidelity Score': f"{v['score']*100:.1f}",
+                    'Status': badge_t
+                })
+            st.dataframe(pd.DataFrame(dist_rows), use_container_width=True, hide_index=True)
+
+        # Categorical fidelity
+        if tm['cat_scores']:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="section-title">Categorical Distribution Fidelity</div>', unsafe_allow_html=True)
+            cat_rows = []
+            for col_name, v in tm['cat_scores'].items():
+                badge_c, badge_t = score_badge(v['score'] * 100)
+                cat_rows.append({
+                    'Column': col_name,
+                    'KL Divergence': f"{v['kl_divergence']:.4f}",
+                    'Fidelity Score': f"{v['score']*100:.1f}",
+                    'Status': badge_t
+                })
+            st.dataframe(pd.DataFrame(cat_rows), use_container_width=True, hide_index=True)
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# TAB 4: EXPORT
+# ──────────────────────────────────────────────────────────────────────────
+with tab4:
+    if 'synth_df' not in st.session_state:
+        st.markdown("""
+        <div style="text-align:center;padding:60px 20px;">
+            <div style="font-size:40px;margin-bottom:12px;">⬇</div>
+            <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#e8e8f0;margin-bottom:8px;">
+                No Data to Export
+            </div>
+            <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;">
+                Generate synthetic data first.
+            </div>
+        </div>""", unsafe_allow_html=True)
+    else:
+        synth_df = st.session_state['synth_df']
+        st.markdown('<div class="section-title">⬇ Export Synthetic Dataset</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-sub">{len(synth_df):,} rows ready for download</div>', unsafe_allow_html=True)
+
+        # Summary card
+        sci_val = st.session_state.get('trust_metrics', {}).get('sci', 'N/A')
+        clr = score_color(float(sci_val)) if isinstance(sci_val, (int, float)) else '#7c6af7'
+
+        st.markdown(f"""
+        <div style="background:#111118;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin-bottom:24px;">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            <div>
+                <div class="metric-label">Rows Generated</div>
+                <div style="font-size:22px;font-weight:800;color:#7c6af7;">{len(synth_df):,}</div>
+            </div>
+            <div>
+                <div class="metric-label">Columns</div>
+                <div style="font-size:22px;font-weight:800;color:#3ecfcf;">{synth_df.shape[1]}</div>
+            </div>
+            <div>
+                <div class="metric-label">SCI Score</div>
+                <div style="font-size:22px;font-weight:800;color:{clr};">{sci_val}</div>
+            </div>
+            <div>
+                <div class="metric-label">Memory (approx)</div>
+                <div style="font-size:22px;font-weight:800;color:#e8e8f0;">{synth_df.memory_usage(deep=True).sum()//1024:,} KB</div>
+            </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_dl1, col_dl2 = st.columns(2)
+
+        with col_dl1:
+            st.markdown("""
+            <div style="background:#111118;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin-bottom:12px;">
+                <div class="metric-label" style="margin-bottom:8px;">CSV Export</div>
+                <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;margin-bottom:12px;">
+                    Universal format · UTF-8 encoded<br>Compatible with all data tools
+                </div>
+            </div>""", unsafe_allow_html=True)
+            csv_data = synth_df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                "⬇ Download CSV",
+                data=csv_data,
+                file_name="datasynthx_synthetic.csv",
+                mime="text/csv"
+            )
+
+        with col_dl2:
+            st.markdown("""
+            <div style="background:#111118;border:1px solid #2a2a3a;border-radius:12px;padding:20px;margin-bottom:12px;">
+                <div class="metric-label" style="margin-bottom:8px;">Excel Export</div>
+                <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;margin-bottom:12px;">
+                    Styled .xlsx format · Column widths<br>auto-fitted · Purple header theme
+                </div>
+            </div>""", unsafe_allow_html=True)
+            try:
+                excel_data = to_excel_bytes(synth_df)
+                st.download_button(
+                    "⬇ Download Excel",
+                    data=excel_data,
+                    file_name="datasynthx_synthetic.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            except Exception as e:
+                st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  GENERATION TRIGGER
+# ═══════════════════════════════════════════════════════════════════════════
+
+if generate_btn:
+    # ── Credit check ────────────────────────────────────────────────────────
+    current_credits = st.session_state.get("credits", 0)
+    if current_credits <= 0:
+        st.error(
+            "⚡ You have no credits remaining. "
+            "Please purchase a plan to continue generating synthetic data."
+        )
+        st.stop()
+
+    if not numeric_cols and not categorical_cols:
+        st.session_state['gen_status'] = 'error'
+        st.error("No usable columns found. Please check your dataset.")
+    else:
+        with st.spinner(""):
+            try:
+                progress_bar = st.progress(0, text="Initializing generator…")
+
+                progress_bar.progress(15, text="Building statistical model…")
+                generator = SyntheticDataGenerator(df, profile)
+
+                progress_bar.progress(40, text=f"Generating {n_rows:,} synthetic rows…")
+                synth_df = generator.generate(n_rows, noise_level=noise_level)
+
+                progress_bar.progress(70, text="Computing trust metrics…")
+                tm = TrustMetrics(df, synth_df, profile)
+                trust_data = tm.compute_sci()
+
+                progress_bar.progress(90, text="Deducting credit…")
+                new_balance = deduct_credit(st.session_state["access_key"])
+                st.session_state["credits"] = new_balance
+
+                progress_bar.progress(95, text="Finalizing…")
+                st.session_state['synth_df']      = synth_df
+                st.session_state['trust_metrics'] = trust_data
+                st.session_state['gen_status']    = 'done'
+
+                progress_bar.progress(100, text="Done!")
+            except Exception as _gen_err:
+                st.session_state['gen_status'] = 'error'
+                st.error(f"Generation failed: {_gen_err}")
+                st.rerun()
+
+        sci = trust_data['sci']
+        clr = score_color(sci)
+        badge_cls, badge_label = score_badge(sci)
+        remaining = st.session_state.get("credits", 0)
+
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(62,207,207,0.08));
+                    border:1px solid rgba(124,106,247,0.3);border-radius:12px;
+                    padding:16px 20px;margin-top:16px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+            <div style="font-size:28px;flex-shrink:0;">✓</div>
+            <div style="flex:1;min-width:200px;">
+                <div style="font-family:Syne,sans-serif;font-size:clamp(13px,2.5vw,16px);font-weight:700;color:#e8e8f0;">
+                    {n_rows:,} synthetic rows generated successfully
+                </div>
+                <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;margin-top:4px;line-height:1.7;">
+                    SCI Score: <span style="color:{clr};font-weight:700;">{sci}/100</span> ·
+                    Status: <span class="badge {badge_cls}">{badge_label}</span> ·
+                    Credits left: <span style="color:#3ecfcf;font-weight:700;">{remaining}</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.rerun()
