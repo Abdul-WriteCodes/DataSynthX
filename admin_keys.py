@@ -86,14 +86,15 @@ def _connect() -> gspread.Worksheet:
             RED(f"✗ Service account file not found: {sa_path.resolve()}\n")
             + DIM("  Set DSX_SA_FILE env var or place service_account.json here.")
         )
-    if SHEET_ID == "1DwhsaYqT7B0TObUOoC_a4cnGpMQlS4yZiQjkSE3h0RQ":
+    if SHEET_ID in ("YOUR_GOOGLE_SHEET_ID_HERE", ""):
         sys.exit(
             RED("✗ SHEET_ID is not configured.\n")
             + DIM("  Edit CONFIG in admin_keys.py or: export DSX_SHEET_ID=your-id")
         )
 
     creds = Credentials.from_service_account_file(str(sa_path), scopes=SCOPES)
-    gc    = gspread.authorize(creds)
+    gc    = gspread.Client(auth=creds)
+    gc.login()  # explicitly trigger auth handshake
     sh    = gc.open_by_key(SHEET_ID)
 
     try:
@@ -110,7 +111,7 @@ def _connect() -> gspread.Worksheet:
 
 
 def _ensure_headers(ws: gspread.Worksheet):
-    """Create header row if missing; abort if wrong headers found."""
+    """Create header row if missing; add any missing columns to the right."""
     existing = ws.row_values(1)
     if not existing:
         ws.append_row(REQUIRED_HEADERS)
@@ -118,11 +119,11 @@ def _ensure_headers(ws: gspread.Worksheet):
         return
     missing = [h for h in REQUIRED_HEADERS if h not in existing]
     if missing:
-        # Append any missing columns to the right
-        for col_name in missing:
-            ws.add_cols(1)
-            col_idx = len(ws.row_values(1)) + 1
-            ws.update_cell(1, col_idx, col_name)
+        # existing length is stable — compute next col index before adding any columns
+        next_col = len(existing) + 1
+        ws.add_cols(len(missing))
+        for offset, col_name in enumerate(missing):
+            ws.update_cell(1, next_col + offset, col_name)
         print(YELLOW(f"⚠  Added missing columns: {missing}"))
 
 
@@ -182,13 +183,11 @@ def cmd_issue(args):
     elif plan_lc in PLAN_DEFAULTS:
         credits = PLAN_DEFAULTS[plan_lc]
     else:
-        credits = args.credits or 0
-        if credits == 0:
-            sys.exit(
-                RED(f"✗ Unknown plan '{plan}'.")
-                + f"\n  Known plans: {', '.join(PLAN_DEFAULTS.keys())}"
-                + "\n  Or pass --credits N to set manually."
-            )
+        sys.exit(
+            RED(f"✗ Unknown plan '{plan}'.")
+            + f"\n  Known plans: {', '.join(PLAN_DEFAULTS.keys())}"
+            + "\n  Or pass --credits N to set manually."
+        )
 
     ws = _connect()
     records, _ = _all_records(ws)
