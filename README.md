@@ -29,19 +29,19 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 
 -	🧬Synthetic Data Generation Engine
 
-		- Multivariate Gaussian modeling** (numeric)
-		- Frequency-preserving sampling** (categorical)
-		- Missing value replication**
-		- Noise injection for realism**
-		- Scales to **hundreds of thousands of rows**
+			- Multivariate Gaussian modeling** (numeric)
+			- Frequency-preserving sampling** (categorical)
+			- Missing value replication**
+			- Noise injection for realism**
+			- Scales to **hundreds of thousands of rows**
 
 -	📊Trust & Fidelity Metrics
 
-		- Correlation Preservation Score
-		- Distribution Similarity:
-		- Kolmogorov-Smirnov Test
-		- Wasserstein Distance
-		- Synthetic Consistency Index (SCI)
+			- Correlation Preservation Score
+			- Distribution Similarity:
+			- Kolmogorov-Smirnov Test
+			- Wasserstein Distance
+			- Synthetic Consistency Index (SCI)
 
 -	🤖AI Insight Explainer
 	- Interprets:
