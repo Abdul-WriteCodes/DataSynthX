@@ -33,6 +33,7 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 	- Missing value replication**
 	- Noise injection for realism**
 	- Scales to **hundreds of thousands of rows**
+	>The core purpose of this engine is to generates synthetic data while preserving its distributions, correlations and missing patterns
 
 -	📊Trust & Fidelity Metrics
 	- Correlation Preservation Score
@@ -61,7 +62,6 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		- ML pipelines
 		- Testing environments
 
----
 
 ## 🧠 How It Works
 
@@ -98,36 +98,7 @@ Upload Data → Profile → Generate → Validate → Explain → Export
 
 ---
 
-## 🏗️ Architecture
 
-```text
-DataSynthX
-│
-├── Frontend (Streamlit)
-│   ├── Landing Page
-│   ├── Upload Interface
-│   ├── Visualization Dashboard
-│
-├── Core Engines
-│   ├── DataProfiler
-│   ├── SyntheticDataGenerator
-│   ├── TrustMetrics
-│
-├── AI Layer
-│   ├── OpenAI Integration
-│   │   ├── Statistical Insight Explanation
-│   │   ├── Synthetic vs Real Comparison
-│   │   └── Data Reliability Narratives
-│
-└── Credit Engine
-    ├── Google Sheets (gspread)
-    ├── Access Key Validation
-    └── Credit Deduction Logic
-```
-
----
-
-## 🧪 Core Components
 
 ### `DataProfiler`
 
