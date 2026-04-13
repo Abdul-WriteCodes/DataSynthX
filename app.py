@@ -628,7 +628,7 @@ def render_landing():
         <span class="gate-sep">&nbsp;|&nbsp;</span>
         <a href="mailto:Abdulwrite77@gmail.com">&#x2699;&#xFE0F; Support</a>
     </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
 # ─── Auth gate ────────────────────────────────────────────────────────────────
