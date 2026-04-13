@@ -621,7 +621,7 @@ def render_landing():
     """)
 
     st.markdown("""
-    <div class="gate-links">
+    <div style="text-align:center;class="gate-links">
         <a href="https://wa.me/2348096506034" target="_blank" rel="noopener noreferrer">&#x1F464; Get Access Key</a>
         <span class="gate-sep">&nbsp;|&nbsp;</span>
         <a href="https://app.box.com/s/vw4c6u10bv0z8ngarzj73ej18t74e3wl" target="_blank" rel="noopener noreferrer">&#x1F4CB; User Guide</a>
