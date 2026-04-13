@@ -2,7 +2,7 @@
 
 # ⬡ DataSynthX
 <p align="center">
-  <img src="assets/Dx.jpeg" alt="PanelStatX Logo" width="800"/>
+  <img src="assets/Dx.JPEG" alt="PanelStatX Logo" width="800"/>
 </p>
 
 
