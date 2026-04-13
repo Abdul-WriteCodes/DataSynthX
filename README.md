@@ -105,11 +105,14 @@ DataSynthX is built as an easy-to-use no-code platform based on
 	- Categorical Fidelity Score
 - 	Click AI Explainer to Interprete the result
 
+
+👉 **[Try the Live System Here](https://datasynthx.streamlit.app/)**
+
 ---
 
 
 
-## 🔐 Privacy by Design
+## 🔐 Privacy and Security
 
 * No raw data storage
 * Synthetic output is non-identifiable
@@ -120,18 +123,5 @@ DataSynthX is built as an easy-to-use no-code platform based on
   * Safe experimentation
 
 ---
-
-
-## ⚡ Final Thought
-
-> Data is not useful unless it is understood.
-
-**DataSynthX doesn’t just generate data.
-It makes data make sense.**
-# ⬡ DataSynthX
-
-### **Generate Data That Looks Real, Behaves Real — and Explains Itself**
-
-> Privacy-Safe Synthetic Data + AI-Powered Statistical Insight Engine
 
 ---
