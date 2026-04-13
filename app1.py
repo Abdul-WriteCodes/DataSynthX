@@ -547,8 +547,7 @@ def render_landing():
             f'<span style="color:{plan["color"]};margin-right:8px;">✓</span>{f}</div>'
             for f in plan["features"]
         )
-        btn_bg  = "linear-gradient(135deg,#7c6af7,#5a4fd4)" if plan["highlight"] else "transparent"
-        btn_clr = "white" if plan["highlight"] else plan["color"]
+        
         with col:
             st.html(f"""
             <div style="background:#111118;border:1px solid #2a2a3a;{border_top}
@@ -561,14 +560,7 @@ def render_landing():
                 <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
                             margin-bottom:22px;">{plan["credits"]} credits · {plan["period"]}</div>
                 <div style="margin-bottom:28px;">{feats}</div>
-                <a href="{plan["link"]}" target="_blank" rel="noopener" style="
-                    display:block;text-align:center;padding:13px 20px;
-                    background:{btn_bg};border:1.5px solid {plan["color"]};
-                    border-radius:10px;color:{btn_clr};font-family:Syne,sans-serif;
-                    font-weight:700;font-size:14px;text-decoration:none;
-                    letter-spacing:0.4px;">
-                    Get {plan["name"]} Access →
-                </a>
+                
             </div>
             """)
 
