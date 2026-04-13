@@ -19,8 +19,7 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 
 ## ⚡ Key Features
 
--	🔬Statistical Profiling Engine
-
+-	🔬Statistical  Data Profiling Engine
 	- Automatic detection:
 	- Numeric, categorical, datetime columns
 	- Deep statistical extraction:
@@ -28,71 +27,41 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		  - Missing value patterns
 		  - Correlation matrix
 
----
+-	🧬Synthetic Data Generation Engine
 
-### 🧬 2. Synthetic Data Generation Engine
+		-	Multivariate Gaussian modeling** (numeric)
+		-	Frequency-preserving sampling** (categorical)
+		-	Missing value replication**
+		-	Noise injection for realism**
+		-	Scales to **hundreds of thousands of rows**
 
-* **Multivariate Gaussian modeling** (numeric)
-* **Frequency-preserving sampling** (categorical)
-* **Missing value replication**
-* **Noise injection for realism**
-* Scales to **hundreds of thousands of rows**
+-	📊Trust & Fidelity Metrics
 
----
+		-	Correlation Preservation Score
+		-	Distribution Similarity:
+		-	Kolmogorov-Smirnov Test
+		-	Wasserstein Distance
+		-	Synthetic Consistency Index (SCI)
 
-### 📊 3. Trust & Fidelity Metrics
+-	🤖AI Insight Explainer
+	- Interprets:
+		- Statistical distributions
+		- Correlation structures
+		- Synthetic vs real differences
+	- Explains:
 
-* Correlation Preservation Score
-* Distribution Similarity:
+		- What changed
+		- What stayed consistent
+		- Whether the data is reliable
 
-  * Kolmogorov-Smirnov Test
-  * Wasserstein Distance
-* Synthetic Consistency Index (SCI)
 
----
-
-### 🤖 4. AI Insight Explainer (GAME CHANGER)
-
-> This is what makes DataSynthX different.
-
-* Interprets:
-
-  * Statistical distributions
-  * Correlation structures
-  * Synthetic vs real differences
-* Explains:
-
-  * What changed
-  * What stayed consistent
-  * Whether the data is reliable
-* Outputs:
-
-  * Human-readable insights
-  * Research-ready explanations
-
-✅ No statistical expertise required
-✅ Turns numbers into **understanding**
-
----
-
-### 💳 5. Credit-Based Access System
-
-* Google Sheets-powered backend
-* Secure access keys (`DSX-XXXX-XXXX`)
-* 1 generation = 1 credit
-* Credits never expire
-
----
-
-### 📤 6. Export Ready
-
-* CSV download
-* Excel download
-* Ready for:
-
-  * Research
-  * ML pipelines
-  * Testing environments
+-	Export Ready
+	- CSV download
+	- Excel download
+	- Ready for:
+		- Research and Data Analysis
+		- ML pipelines
+		- Testing environments
 
 ---
 
