@@ -13,26 +13,20 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 - Compute trust & validation metrics
 - Use AI to explain everything in plain English
 
-While most tools generate synthetic data, DataSynthX tells you if you can trust and use
+>While most tools generate synthetic data, DataSynthX shows and tells you if you can trust and use it
 
 ---
 
-
-
-
-
 ## ⚡ Key Features
 
-### 🔬 1. Statistical Profiling Engine
+-	🔬Statistical Profiling Engine
 
-* Automatic detection:
-
-  * Numeric, categorical, datetime columns
-* Deep statistical extraction:
-
-  * Mean, variance, skewness, kurtosis
-  * Missing value patterns
-  * Correlation matrix
+	- Automatic detection:
+	- Numeric, categorical, datetime columns
+	- Deep statistical extraction:
+		  - Mean, variance, skewness, kurtosis
+		  - Missing value patterns
+		  - Correlation matrix
 
 ---
 
