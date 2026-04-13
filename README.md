@@ -123,5 +123,3 @@ DataSynthX is built as an easy-to-use no-code platform based on
   * Safe experimentation
 
 ---
-
----
