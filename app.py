@@ -414,7 +414,7 @@ PLANS = [
         "features": ["15 generation runs", "Up to 200K rows/run", "CSV & Excel export", "Trust metrics + AI Explainer"],
         "highlight": False,
         "color": "#3ecfcf",
-        "link": "https://buy.stripe.com/starter_link_placeholder",
+        "link": "https://flutterwave.com/pay/3objytc0ksle",
     },
     {
         "name": "Pro",
@@ -424,7 +424,7 @@ PLANS = [
         "features": ["60 generation runs", "Up to 500k rows/run", "CSV & Excel export", "Trust metrics + AI Explainer"],
         "highlight": True,
         "color": "#7c6af7",
-        "link": "https://buy.stripe.com/pro_link_placeholder",
+        "link": "https://flutterwave.com/pay/8rwysyc9fdif",
     },
     {
         "name": "Team",
@@ -434,7 +434,7 @@ PLANS = [
         "features": ["200 generation runs", "Up to 1000 rows/run", "CSV & Excel export", "Trust metrics + AI Explainer"],
         "highlight": False,
         "color": "#f7a86a",
-        "link": "https://buy.stripe.com/team_link_placeholder",
+        "link": "https://flutterwave.com/pay/c4pmnnzdqmyb",
     },
 ]
 
