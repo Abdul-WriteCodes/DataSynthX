@@ -1,6 +1,10 @@
 
 
 # ⬡ DataSynthX
+<p align="center">
+  <img src="assets/Dx.jpeg" alt="PanelStatX Logo" width="800"/>
+</p>
+
 
 DataSynthX is an AI-powered platform that enable users to generate useful synthetic data by learning the statistical DNA of the data. It makes synthetic data data generation simple by:
 - Enabling user upload any dataset
