@@ -84,36 +84,29 @@ Upload Data (csv or .xls) → Profile → Generate → Validate → Explain → 
 		- Testing environments
 
 
+---
 
-
-### Step-by-step:
-
-1. **Upload**
-
-   * CSV / Excel dataset
-
-2. **Profile**
-
-   * Statistical structure extracted
-
-3. **Generate**
-
-   * Synthetic dataset created
-
-4. **Validate**
-
-   * Fidelity metrics computed
-
-5. **Explain (AI Layer)**
-
-   * AI interprets results
-   * Highlights reliability + risks
-
-6. **Export**
-
-   * Download synthetic dataset
+#How to Use
+DataSynthX is built as an easy-to-use no-code platform based on 
+- Upload (CSV / Excel dataset) and system automatically extract and presents its profile
+- Configure synthetic data generation
+	- state the number of rows to be generated
+	- Adjusting noise level (from 0.00 to 0.20) to be injected into the dataset
+- Click Generate
+- Explore and Evaluate the Feature of the Synthetic data generated vs Original data
+	- Compare Mean
+	- Standard Deviation
+	- Minimum
+	- Maximum
+	- Distribution chart
+-  Evaluate the quality and trustworthiness of the synthetic data generated
+	- Correlation preservation Score
+	- Distribution similarity Score
+	- Categorical Fidelity Score
+- 	Click AI Explainer to Interprete the result
 
 ---
+
 
 
 ## 🔐 Privacy by Design
