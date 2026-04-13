@@ -18,6 +18,10 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 ---
 
 ## ⚡ Key Features
+DataSynthX workflow follows: 
+```text
+Upload Data (csv or .xls) → Profile → Generate → Validate → Explain → Export
+```
 
 -	🔬Statistical  Data Profiling Engine
 	- Automatic detection:
@@ -26,6 +30,8 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		  - Mean, variance, skewness, kurtosis
 		  - Missing value patterns
 		  - Correlation matrix
+		  
+	>The purpose of this engine is to extract full statistical structure from raw datasets.
 
 -	🧬Synthetic Data Generation Engine
 	- Multivariate Gaussian modeling** (numeric)
@@ -33,6 +39,7 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 	- Missing value replication**
 	- Noise injection for realism**
 	- Scales to **hundreds of thousands of rows**
+	
 	>The core purpose of this engine is to generates synthetic data while preserving its distributions, correlations and missing patterns
 
 -	📊Trust & Fidelity Metrics
@@ -41,6 +48,8 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		- Kolmogorov-Smirnov Test
 		- Wasserstein Distance
 		- Synthetic Consistency Index (SCI)
+		
+	>The core purpose of this engine is to evaluates how “real” the synthetic data is.
 
 -	🤖AI Insight Explainer
 	- Interprets:
@@ -52,8 +61,9 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		- What changed
 		- What stayed consistent
 		- Whether the data is reliable
-
-
+	
+	>The core purpose of this engine is to transforms metrics into less plain understand insight for data owner
+	
 -	Export Ready
 	- CSV download
 	- Excel download
@@ -63,11 +73,7 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 		- Testing environments
 
 
-## 🧠 How It Works
 
-```text
-Upload Data → Profile → Generate → Validate → Explain → Export
-```
 
 ### Step-by-step:
 
@@ -100,23 +106,9 @@ Upload Data → Profile → Generate → Validate → Explain → Export
 
 
 
-### `DataProfiler`
 
-Extracts full statistical structure from raw datasets.
 
-### `SyntheticDataGenerator`
 
-Generates synthetic data while preserving:
-
-* Distributions
-* Correlations
-* Missing patterns
-
-### `TrustMetrics`
-
-Evaluates how “real” your synthetic data is.
-
-### `AIExplainer`
 
 Transforms metrics into:
 
