@@ -613,7 +613,14 @@ def render_landing():
                     st.session_state["credits"]       = int(row.get(COL_CREDITS, 0))
                     st.rerun()
 
-    
+
+    st.html("""
+    <div style="text-align:center;font-family:Space Mono,monospace;font-size:10px;
+                color:#2e2e3e;margin-top:56px;letter-spacing:1px;padding-bottom:40px;">
+        DataSynthX: Your Privacy-first synthetic data solution 
+    </div>
+    """)
+
     st.markdown("""
     <style>
     .gate-links a {
