@@ -613,23 +613,7 @@ def render_landing():
                     st.session_state["credits"]       = int(row.get(COL_CREDITS, 0))
                     st.rerun()
 
-    st.html("""
-    <div style="text-align:center;font-family:Space Mono,monospace;font-size:10px;
-                color:#2e2e3e;margin-top:56px;letter-spacing:1px;padding-bottom:40px;">
-        © 2025 DataSynthX · Privacy-first synthetic data
-    </div>
-    """)
-
-    st.markdown("""
-    <div style="text-align:center;class="gate-links">
-        <a href="https://wa.me/2348096506034" target="_blank" rel="noopener noreferrer">&#x1F464; Get Access Key</a>
-        <span class="gate-sep">&nbsp;|&nbsp;</span>
-        <a href="https://app.box.com/s/vw4c6u10bv0z8ngarzj73ej18t74e3wl" target="_blank" rel="noopener noreferrer">&#x1F4CB; User Guide</a>
-        <span class="gate-sep">&nbsp;|&nbsp;</span>
-        <a href="mailto:Abdulwrite77@gmail.com">&#x2699;&#xFE0F; Support</a>
-    </div>
-    """, unsafe_allow_html=True)
-
+    
     st.markdown("""
     <style>
     .gate-links a {
@@ -658,6 +642,15 @@ def render_landing():
          <a href="mailto:Abdulwrite77@gmail.com">⚙️ Support</a>
     </div>
     """, unsafe_allow_html=True)
+    
+
+    st.html("""
+    <div style="text-align:center;font-family:Space Mono,monospace;font-size:10px;
+                color:#2e2e3e;margin-top:56px;letter-spacing:1px;padding-bottom:40px;">
+        © 2025 DataSynthX · Privacy-first synthetic data
+    </div>
+    """)
+
 
 
 # ─── Auth gate ────────────────────────────────────────────────────────────────
