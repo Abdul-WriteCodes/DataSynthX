@@ -630,6 +630,35 @@ def render_landing():
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+    .gate-links a {
+        text-decoration: none;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #0e75b6, #0b5ed7);
+        padding: 10px 16px;
+        border-radius: 8px;
+        margin: 0 6px;
+        display: inline-block;
+        transition: 0.2s ease;
+     }
+     .gate-links a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+     }
+     .gate-sep {
+        display: none;
+     }
+     </style>
+
+     <div style="text-align:center;" class="gate-links">
+         <a href="https://wa.me/2348096506034" target="_blank">👤 Get Access Key</a>
+         <a href="https://app.box.com/s/vw4c6u10bv0z8ngarzj73ej18t74e3wl" target="_blank">📋 User Guide</a>
+         <a href="mailto:Abdulwrite77@gmail.com">⚙️ Support</a>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # ─── Auth gate ────────────────────────────────────────────────────────────────
 if not st.session_state.get("authenticated", False):
