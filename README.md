@@ -13,12 +13,7 @@ DataSynthX is an AI-powered platform that enable users to generate useful synthe
 - Compute trust & validation metrics
 - Use AI to explain everything in plain English
 
----
-
-## 🔥 Core Value Proposition
-
-> Most tools generate synthetic data.
-> **DataSynthX tells you if you can trust it — and why.**
+While most tools generate synthetic data, DataSynthX tells you if you can trust and use
 
 ---
 
