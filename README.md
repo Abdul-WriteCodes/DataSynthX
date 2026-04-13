@@ -30,6 +30,10 @@ Upload any dataset, and DataSynthX will:
 
 ---
 
+
+
+
+
 ## ⚡ Key Features
 
 ### 🔬 1. Statistical Profiling Engine
