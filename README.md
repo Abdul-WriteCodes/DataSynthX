@@ -1,18 +1,23 @@
-# DataSynthX
 
 
 # ⬡ DataSynthX
 
+DataSynthX is an AI-powered platform that enable users to generate high-fidelity useful synthetic data by learning the statistical DNA of the data and 
+it **understands it, validates it, and explains it**.
+
+
+
+
+Privacy-Safe Synthetic Data + AI-Powered Statistical Insight Engine
+
 ### **Generate Data That Looks Real, Behaves Real — and Explains Itself**
 
-> Privacy-Safe Synthetic Data + AI-Powered Statistical Insight Engine
 
 ---
 
 ## 🚀 What is DataSynthX?
 
-**DataSynthX** is an AI-powered platform that doesn’t just generate synthetic data —
-it **understands it, validates it, and explains it**.
+
 
 Upload any dataset, and DataSynthX will:
 
