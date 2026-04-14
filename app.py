@@ -463,11 +463,11 @@ def render_landing():
                     letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;">
             Privacy-Safe · Statistically Faithful · Production Ready
         </div>
-        <h1 style="font-family:Syne,sans-serif;font-size:40px;font-weight:800;
+        <h1 style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;
                    background:linear-gradient(135deg,#e8e8f0 40%,#7c6af7);
                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
                    line-height:1.1;margin:0 0 22px;">
-            Generate Synthetic Data<br>That Mirrors Reality
+            Generate Synthetic Data<br>That Mirrors The Original Data
         </h1>
         <p style="font-family:Syne,sans-serif;font-size:17px;color:#9999b0;
                   max-width:580px;margin:0 auto 50px;line-height:1.75;">
