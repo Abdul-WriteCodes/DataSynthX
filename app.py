@@ -640,7 +640,7 @@ def render_landing():
 
      <div style="text-align:center;" class="gate-links">
          <a href="https://wa.me/2348096506034" target="_blank">👤 Get Access Key</a>
-         <a href="https://app.box.com/s/vw4c6u10bv0z8ngarzj73ej18t74e3wl" target="_blank">📋 User Guide</a>
+         <a href="#" target="_blank">📋 User Guide</a>
          <a href="mailto:Abdulwrite77@gmail.com">⚙️ Support</a>
     </div>
     """, unsafe_allow_html=True)
