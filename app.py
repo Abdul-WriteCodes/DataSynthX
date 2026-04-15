@@ -311,7 +311,7 @@ button[data-testid="collapsedControl"] {
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  GOOGLE SHEETS CREDIT ENGINE
+#  GS CRE-PAYLOAD ENGINE
 # ═══════════════════════════════════════════════════════════════════════════
 
 SCOPES = [
@@ -666,7 +666,7 @@ st.session_state["credits"] = _live_credits
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  CORE ENGINES
+#  CORENGINES
 # ═══════════════════════════════════════════════════════════════════════════
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -1566,7 +1566,7 @@ with tab3:
                 })
             st.dataframe(pd.DataFrame(cat_rows), use_container_width=True, hide_index=True)
 
-        # ── AI Explainer ──────────────────────────────────────────────────
+        # ── Modelexplainer ──────────────────────────────────────────────────
         st.html("<br>")
         st.html("""
         <div style="border-top:1px solid #2a2a3a;padding-top:28px;margin-top:8px;">
