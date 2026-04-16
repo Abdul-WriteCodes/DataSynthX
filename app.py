@@ -570,11 +570,11 @@ def render_landing():
     # Access key entry
     st.html("""
     <div style="text-align:center;margin-top:64px;margin-bottom:20px;">
-        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+        <div style="font-family:Space Mono,monospace;font-size:16px;color:#6b6b80;
                     letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">
             Already have an access key?
         </div>
-        <div style="font-family:Space Mono,monospace;font-size:11px;color:#3a3a50;">
+        <div style="font-family:Space Mono,monospace;font-size:14px;color:#3a3a50;">
             Your key is emailed to you after purchase.
         </div>
     </div>
