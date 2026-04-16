@@ -1296,7 +1296,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊  Data Profile", "🧬  Synthetic Data", 
 with tab1:
     st.html('<div class="section-title">Original Dataset Preview</div>')
     st.html('<div class="section-sub">First 100 rows of uploaded data</div>')
-    st.dataframe(df.head(100), use_container_width=True, height=240)
+    st.dataframe(df.head(100),  width='stretch', height=240)
 
     if numeric_cols:
         st.html("<br>")
@@ -1314,7 +1314,7 @@ with tab1:
                 'Kurtosis': f"{s['kurtosis']:.4f}",
                 'Missing %': f"{s['missing_ratio']*100:.1f}%"
             })
-        st.dataframe(pd.DataFrame(stats_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(stats_rows), width='stretch', hide_index=True)
 
     if categorical_cols:
         st.html("<br>")
@@ -1330,7 +1330,7 @@ with tab1:
                 'Top 3 Categories': ', '.join([f"{k} ({v*100:.1f}%)" for k, v in top]),
                 'Missing %': f"{s['missing_ratio']*100:.1f}%"
             })
-        st.dataframe(pd.DataFrame(cat_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(cat_rows), width='stretch', hide_index=True)
 
     if not profile['correlation_matrix'].empty:
         st.html("<br>")
@@ -1390,7 +1390,7 @@ with tab2:
         synth_df = st.session_state['synth_df']
         st.html('<div class="section-title">Synthetic Dataset Preview</div>')
         st.html(f'<div class="section-sub">{len(synth_df):,} rows generated · {synth_df.shape[1]} columns</div>')
-        st.dataframe(synth_df.head(100), use_container_width=True, height=280)
+        st.dataframe(synth_df.head(100), width='stretch', height=280)
 
         # Side-by-side summary
         st.html("<br>")
@@ -1412,7 +1412,7 @@ with tab2:
                     'Orig Max': f"{o.max():.4f}",
                     'Synth Max': f"{s.max():.4f}",
                 })
-            st.dataframe(pd.DataFrame(compare_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(compare_rows), width='stretch', hide_index=True)
 
         # Overlay histograms
         if numeric_cols:
@@ -1549,7 +1549,7 @@ with tab3:
                     'Fidelity Score': f"{v['score']*100:.1f}",
                     'Status': badge_t
                 })
-            st.dataframe(pd.DataFrame(dist_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(dist_rows), width='stretch', hide_index=True)
 
         # Categorical fidelity
         if tm['cat_scores']:
@@ -1564,7 +1564,7 @@ with tab3:
                     'Fidelity Score': f"{v['score']*100:.1f}",
                     'Status': badge_t
                 })
-            st.dataframe(pd.DataFrame(cat_rows), use_container_width=True, hide_index=True)
+            st.dataframe(pd.DataFrame(cat_rows), width='stretch', hide_index=True)
 
         # ── Modelexplainer ──────────────────────────────────────────────────
         st.html("<br>")
@@ -1589,16 +1589,16 @@ with tab3:
 
         use_case_input = st.text_area(
             "What are you using this synthetic data for?",
-            placeholder="e.g. training a churn prediction model, augmenting a small dataset for testing, anonymising patient records for research, load testing an API...",
+            placeholder="e.g. conducting thesis/dissertation analysis; training a churn prediction model, anonymising patient records for research,...",
             height=80,
             key="ai_use_case_input",
             label_visibility="visible",
         )
 
         explain_btn = st.button(
-            "✦ Interpret my results",
+            "✦ Analyse Data Quality and Use case fit",
             key="explain_btn",
-            use_container_width=False,
+            width='stretch',
         )
 
         if explain_btn:
