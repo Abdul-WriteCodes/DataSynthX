@@ -318,13 +318,13 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
-SHEET_NAME      = "Sheet1"   # Tab name inside the Google Sheet
+SHEET_NAME      = "Sheet1"    
 COL_KEY         = "Key"
 COL_CREDITS     = "Credits"
 COL_OWNER       = "Email"
 COL_ISSUED      = "DatePurchased"
 REQUIRED_HEADERS = [COL_KEY, COL_CREDITS, COL_ISSUED, COL_OWNER]
-CREDITS_PER_RUN = 1                   # 1 credit consumed per Generate run
+CREDITS_PER_RUN = 1                    
 
 
 @st.cache_resource(show_spinner=False)
@@ -461,7 +461,7 @@ def render_landing():
         </div>
         <div style="font-family:Space Mono,monospace;font-size:11px;color:#3ecfcf;
                     letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;">
-            Privacy-Safe · Statistically Faithful · Production Ready
+            Privacy-Safe · Statistically Reliable · Trustworthy Data
         </div>
         <h1 style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;
                    background:linear-gradient(135deg,#e8e8f0 40%,#7c6af7);
@@ -473,7 +473,7 @@ def render_landing():
                   max-width:580px;margin:0 auto 50px;line-height:1.75;">
             Upload any dataset. DataSynthX learns its statistical DNA — distributions,
             correlations, categories — and generates unlimited privacy-safe synthetic
-            records at any scale with measurable fidelity.
+            dataset at any scale with measurable fidelity.
         </p>
     </div>
     """)
@@ -488,7 +488,7 @@ def render_landing():
             <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
                         color:#e8e8f0;margin-bottom:8px;">Upload</div>
             <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
-                Drop any CSV or Excel file. Every column is profiled automatically — numeric,
+                Drop any CSV or Excel file (e.g. Survey/Experimental Data). Every column is profiled automatically — numeric,
                 categorical, datetime.
             </div>
         </div>
@@ -523,7 +523,7 @@ def render_landing():
         <div style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;color:#e8e8f0;">
             Simple, credit-based access
         </div>
-        <div style="font-family:Space Mono,monospace;font-size:12px;color:#6b6b80;margin-top:8px;">
+        <div style="font-family:Space Mono,monospace;font-size:16px;color:#6b6b80;margin-top:8px;">
             Buy once, use at your own pace. Each generation run costs 1 credit.
             Access key is emailed after purchase.
         </div>
