@@ -25,8 +25,11 @@ DataSynthX is data agnostic system and is finding useful cases accross domains n
 - 🔍 Data analysis without exposure
 - 🧠 AI-assisted statistical interpretation
 
-
 ---
+
+
+
+
 
 ## ⚡ Key Features
 DataSynthX workflow follows: 
