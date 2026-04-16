@@ -1453,7 +1453,7 @@ with tab2:
                             ),
                             bargap=0.05,
                         )
-                        st.plotly_chart(fig, use_container_width=True,
+                        st.plotly_chart(fig, width='stretch',
                                        config={"displayModeBar": False})
 
 
