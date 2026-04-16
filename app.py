@@ -564,7 +564,7 @@ def render_landing():
             st.link_button(
                 f"Get {plan['name']} Access →",
                 url=plan["link"],
-                use_container_width=True,
+                width='stretch',
             )
 
     # Access key entry
@@ -588,7 +588,7 @@ def render_landing():
             label_visibility="collapsed",
             key="landing_key_input",
         )
-        enter_btn = st.button("⬡ Enter DataSynthX", type="primary", use_container_width=True)
+        enter_btn = st.button("⬡ Enter DataSynthX", type="primary", width='stretch')
 
         if enter_btn:
             if not key_input.strip():
@@ -1649,7 +1649,7 @@ Per-column distribution scores: {dist_summary}
 Per-column categorical scores: {cat_summary}
 {"User's stated use case: " + use_case if use_case else "No use case stated — infer from column names."}"""
 
-                with st.spinner("Analysing your results…"):
+                with st.spinner("Analysing synthetic data quality and use case fit…"):
                     try:
                         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                         response = client.chat.completions.create(
