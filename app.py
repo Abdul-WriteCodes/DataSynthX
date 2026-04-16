@@ -487,7 +487,7 @@ def render_landing():
             <div style="font-size:32px;margin-bottom:12px;">⬆</div>
             <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
                         color:#e8e8f0;margin-bottom:8px;">Upload</div>
-            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+            <div style="font-family:Space Mono,monospace;font-size:13px;color:#6b6b80;line-height:1.7;">
                 Drop any CSV or Excel file (e.g. Survey/Experimental Data). Every column is profiled automatically — numeric,
                 categorical, datetime.
             </div>
@@ -497,7 +497,7 @@ def render_landing():
             <div style="font-size:32px;margin-bottom:12px;">⬡</div>
             <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
                         color:#e8e8f0;margin-bottom:8px;">Generate</div>
-            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+            <div style="font-family:Space Mono,monospace;font-size:13px;color:#6b6b80;line-height:1.7;">
                 Multivariate Gaussian + frequency-preserving sampling. Scale to millions
                 of rows instantly.
             </div>
@@ -507,7 +507,7 @@ def render_landing():
             <div style="font-size:32px;margin-bottom:12px;">⬇</div>
             <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;
                         color:#e8e8f0;margin-bottom:8px;">Export & Verify</div>
-            <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;line-height:1.7;">
+            <div style="font-family:Space Mono,monospace;font-size:13px;color:#6b6b80;line-height:1.7;">
                 Download CSV / Excel. The SCI score validates statistical fidelity
                 across every column.
             </div>
