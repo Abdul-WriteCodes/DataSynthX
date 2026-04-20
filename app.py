@@ -639,9 +639,9 @@ def render_landing():
      </style>
 
      <div style="text-align:center;" class="gate-links">
-         <a href="https://wa.me/2348096506034" target="_blank">👤 Get Access Key</a>
+         <a href="https://x.com/bayantx360" target="_blank">👤 Get Access Key</a>
          <a href="#" target="_blank">📋 User Guide</a>
-         <a href="mailto:Abdulwrite77@gmail.com">⚙️ Support</a>
+         <a href="mailto:bayantx360@gmail.com">⚙️ Support</a>
     </div>
     """, unsafe_allow_html=True)
     
