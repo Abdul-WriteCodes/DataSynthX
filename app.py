@@ -593,7 +593,7 @@ def render_landing():
     st.html("""
     <div style="text-align:center;margin-bottom:36px;">
         <div style="font-family:Space Mono,monospace;font-size:16px;color:#6b6b80;
-                    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Upgrade: Pricingand & Payment</div>
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Upgrade: Pricing & Payment</div>
         <div style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;color:#e8e8f0;">
             Simple, credit-based access
         </div>
