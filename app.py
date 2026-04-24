@@ -557,12 +557,12 @@ def render_landing():
                 <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
                              color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
                              letter-spacing:1px;padding:6px 14px;border-radius:8px;">
-                    ✓ CSV Export (unlimited rows)
+                    ✓ CSV &amp; Excel Export (≤100 rows)
                 </span>
                 <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
                              color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
                              letter-spacing:1px;padding:6px 14px;border-radius:8px;opacity:0.85;">
-                    ✗ Excel Export &gt;100 rows
+                    ✗ CSV / Excel Export &gt;100 rows
                 </span>
                 <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
                              color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
@@ -1867,13 +1867,45 @@ with tab4:
                     Universal format · UTF-8 encoded<br>Compatible with all data tools
                 </div>
             </div>""")
-            csv_data = synth_df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "⬇ Download CSV",
-                data=csv_data,
-                file_name="datasynthx_synthetic.csv",
-                mime="text/csv"
-            )
+
+            is_trial   = st.session_state.get("is_free_trial", False)
+            over_limit = len(synth_df) > 100
+
+            if is_trial and over_limit:
+                st.html(f"""
+                <div style="background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.25);
+                            border-radius:10px;padding:16px 18px;margin-bottom:10px;
+                            font-family:Space Mono,monospace;font-size:11px;
+                            color:#9999b0;line-height:1.8;">
+                    <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;
+                                color:#a89df5;margin-bottom:6px;">⬡ Paid Feature</div>
+                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{len(synth_df):,} rows</span>.
+                    CSV export is limited to <strong style="color:#e8e8f0;">100 rows</strong> on the Free Trial.
+                    Upgrade to download the full dataset.
+                </div>
+                """)
+                st.link_button("Upgrade — Get Access Key →", "https://x.com/bayantx360",
+                               use_container_width=True)
+            elif is_trial and not over_limit:
+                csv_data = synth_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "⬇ Download CSV",
+                    data=csv_data,
+                    file_name="datasynthx_synthetic.csv",
+                    mime="text/csv"
+                )
+                st.html("""
+                <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                            margin-top:6px;">Free Trial · ≤100 rows included</div>
+                """)
+            else:
+                csv_data = synth_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "⬇ Download CSV",
+                    data=csv_data,
+                    file_name="datasynthx_synthetic.csv",
+                    mime="text/csv"
+                )
 
         with col_dl2:
             st.html("""
