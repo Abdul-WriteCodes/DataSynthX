@@ -515,11 +515,85 @@ def render_landing():
     </div>
     """)
 
+    # Free Trial CTA — appears before pricing
+    st.html("""
+    <div style="max-width:860px;margin:0 auto 16px;padding:0 20px;">
+        <div style="background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(62,207,207,0.07));
+                    border:1px solid rgba(124,106,247,0.28);border-radius:18px;
+                    padding:36px 32px;position:relative;overflow:hidden;text-align:center;">
+            <div style="position:absolute;top:0;left:0;right:0;height:2px;
+                        background:linear-gradient(90deg,transparent,#7c6af7 40%,#3ecfcf 60%,transparent);"></div>
+            <div style="font-family:Space Mono,monospace;font-size:10px;color:#3ecfcf;
+                        letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;">
+                ⬡ No credit card required · Instant access
+            </div>
+            <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;
+                        background:linear-gradient(90deg,#e8e8f0,#7c6af7);
+                        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                        margin-bottom:10px;line-height:1.15;">
+                Start Free or Use Trial Version
+            </div>
+            <p style="font-family:Space Mono,monospace;font-size:12px;color:#9999b0;
+                      max-width:520px;margin:0 auto 24px;line-height:1.9;">
+                Upload data, generate synthetic datasets and explore all results — completely free.
+                Upgrade to unlock AI Explainer and full Excel exports.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:28px;">
+                <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
+                             color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;">
+                    ✓ Upload CSV / Excel
+                </span>
+                <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
+                             color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;">
+                    ✓ Generate Synthetic Data
+                </span>
+                <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
+                             color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;">
+                    ✓ View All Results & Trust Metrics
+                </span>
+                <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
+                             color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;">
+                    ✓ CSV &amp; Excel Export (≤100 rows)
+                </span>
+                <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
+                             color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;opacity:0.85;">
+                    ✗ CSV / Excel Export &gt;100 rows
+                </span>
+                <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
+                             color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
+                             letter-spacing:1px;padding:6px 14px;border-radius:8px;opacity:0.85;">
+                    ✗ AI Explainer
+                </span>
+            </div>
+        </div>
+    </div>
+    """)
+
+    _, trial_col, _ = st.columns([1.2, 1, 1.2])
+    with trial_col:
+        trial_btn = st.button("⬡ Start Free Trial", type="primary", width='stretch', key="trial_btn")
+
+    st.html("<div style='margin-bottom:40px;'></div>")
+
+    if trial_btn:
+        st.session_state["authenticated"] = True
+        st.session_state["is_free_trial"]  = True
+        st.session_state["access_key"]     = "FREE-TRIAL"
+        st.session_state["key_owner"]      = "Free Trial"
+        st.session_state["key_plan"]       = "Free Trial"
+        st.session_state["credits"]        = 999
+        st.rerun()
+
     # Pricing header
     st.html("""
     <div style="text-align:center;margin-bottom:36px;">
         <div style="font-family:Space Mono,monospace;font-size:16px;color:#6b6b80;
-                    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Pricing</div>
+                    letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Upgrade: Pricing & Payment</div>
         <div style="font-family:Syne,sans-serif;font-size:30px;font-weight:800;color:#e8e8f0;">
             Simple, credit-based access
         </div>
@@ -660,9 +734,10 @@ if not st.session_state.get("authenticated", False):
     render_landing()
     st.stop()
 
-# Refresh live credit balance on every authenticated load
-_live_credits = get_credits(st.session_state["access_key"])
-st.session_state["credits"] = _live_credits
+# Refresh live credit balance on every authenticated load (paid users only)
+if not st.session_state.get("is_free_trial", False):
+    _live_credits = get_credits(st.session_state["access_key"])
+    st.session_state["credits"] = _live_credits
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1037,7 +1112,11 @@ with st.sidebar:
     owner   = st.session_state.get("key_owner", "User")
     plan    = st.session_state.get("key_plan", "—")
     credits = st.session_state.get("credits", 0)
-    cred_color = "#3ecfcf" if credits > 10 else ("#f7a86a" if credits > 3 else "#f76a6a")
+    is_trial = st.session_state.get("is_free_trial", False)
+    cred_color = "#3ecfcf" if (is_trial or credits > 10) else ("#f7a86a" if credits > 3 else "#f76a6a")
+    cred_display = "∞" if is_trial else str(credits)
+    cred_bar_w   = "100" if is_trial else str(min(100, credits))
+    cred_label   = "Free Trial" if is_trial else "Credits remaining"
 
     st.html(f"""
     <div class="brand-header">
@@ -1057,20 +1136,20 @@ with st.sidebar:
                     margin-bottom:10px;">{plan} plan</div>
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;">
-                Credits remaining
+                {cred_label}
             </div>
             <div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;
-                        color:{cred_color};">{credits}</div>
+                        color:{cred_color};">{cred_display}</div>
         </div>
         <div style="background:#1a1a24;border-radius:4px;height:4px;margin-top:6px;overflow:hidden;">
-            <div style="background:{cred_color};height:4px;width:{min(100, credits)}%;
+            <div style="background:{cred_color};height:4px;width:{cred_bar_w}%;
                         border-radius:4px;transition:width 0.4s;"></div>
         </div>
     </div>
     """)
 
     if st.button("↩ Sign Out", use_container_width=True):
-        for k in ["authenticated","access_key","key_owner","key_plan","credits",
+        for k in ["authenticated","access_key","key_owner","key_plan","credits","is_free_trial",
                   "synth_df","trust_metrics","gen_status","ai_explanation","ai_use_case_saved",
                   "uploaded_file_bytes","uploaded_file_name"]:
             st.session_state.pop(k, None)
@@ -1566,7 +1645,7 @@ with tab3:
                 })
             st.dataframe(pd.DataFrame(cat_rows), width='stretch', hide_index=True)
 
-        # ── Modelexplainer ──────────────────────────────────────────────────
+        # ── AI Explainer ──────────────────────────────────────────────────
         st.html("<br>")
         st.html("""
         <div style="border-top:1px solid #2a2a3a;padding-top:28px;margin-top:8px;">
@@ -1587,51 +1666,74 @@ with tab3:
         </div>
         """)
 
-        use_case_input = st.text_area(
-            "What are you using this synthetic data for?",
-            placeholder="e.g. conducting thesis/dissertation analysis; training a churn prediction model, anonymising patient records for research,...",
-            height=80,
-            key="ai_use_case_input",
-            label_visibility="visible",
-        )
+        if st.session_state.get("is_free_trial", False):
+            # ── Free trial block ─────────────────────────────────────────────
+            st.html("""
+            <div style="background:linear-gradient(135deg,rgba(124,106,247,0.07),rgba(62,207,207,0.05));
+                        border:1px solid rgba(124,106,247,0.28);border-left:3px solid #7c6af7;
+                        border-radius:12px;padding:24px 26px;margin-bottom:8px;">
+                <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;
+                            color:#a89df5;margin-bottom:8px;">✦ AI Explainer · Paid Feature</div>
+                <div style="font-family:Space Mono,monospace;font-size:11px;color:#9999b0;
+                            line-height:1.85;margin-bottom:18px;">
+                    AI-powered quality analysis is <span style="color:#e8e8f0;font-weight:700;">not available on the Free Trial</span>.
+                    Upgrade to any paid plan to unlock:<br><br>
+                    &nbsp;&nbsp;✓&nbsp; Plain-language interpretation of your SCI score and per-column metrics<br>
+                    &nbsp;&nbsp;✓&nbsp; Use-case fit assessment for your specific project<br>
+                    &nbsp;&nbsp;✓&nbsp; Actionable suggestions on noise level, row count &amp; column quality
+                </div>
+            </div>
+            """)
+            _, upg_col, _ = st.columns([1, 2, 1])
+            with upg_col:
+                st.link_button("⬡ Upgrade to Paid Plan →", "https://x.com/bayantx360",
+                               use_container_width=True)
+        else:
+            use_case_input = st.text_area(
+                "What are you using this synthetic data for?",
+                placeholder="e.g. conducting thesis/dissertation analysis; training a churn prediction model, anonymising patient records for research,...",
+                height=80,
+                key="ai_use_case_input",
+                label_visibility="visible",
+            )
 
-        explain_btn = st.button(
-            "✦ Analyse Data Quality and Use case fit",
-            key="explain_btn",
-            width='stretch',
-        )
+            explain_btn = st.button(
+                "✦ Analyse Data Quality and Use case fit",
+                key="explain_btn",
+                width='stretch',
+            )
 
-        if explain_btn:
-            current_credits = st.session_state.get("credits", 0)
-            if current_credits <= 0:
-                st.error("No credits remaining. Please purchase a plan to continue.")
-            else:
-                # Build a rich but compact context dict for the prompt
-                dist_summary = {
-                    col: {
-                        "ks_stat": round(v["ks_stat"], 4),
-                        "wasserstein_norm": round(v["wasserstein"], 4),
-                        "fidelity_score": round(v["score"] * 100, 1),
-                    }
-                    for col, v in tm["dist_scores"].items()
-                } if tm["dist_scores"] else {}
+            if explain_btn:
+                current_credits = st.session_state.get("credits", 0)
+                if current_credits <= 0:
+                    st.error("No credits remaining. Please purchase a plan to continue.")
+                else:
+                    # Build a rich but compact context dict for the prompt
+                    dist_summary = {
+                        col: {
+                            "ks_stat": round(v["ks_stat"], 4),
+                            "wasserstein_norm": round(v["wasserstein"], 4),
+                            "fidelity_score": round(v["score"] * 100, 1),
+                        }
+                        for col, v in tm["dist_scores"].items()
+                    } if tm["dist_scores"] else {}
 
-                cat_summary = {
-                    col: {
-                        "kl_divergence": round(v["kl_divergence"], 4),
-                        "fidelity_score": round(v["score"] * 100, 1),
-                    }
-                    for col, v in tm["cat_scores"].items()
-                } if tm["cat_scores"] else {}
+                    cat_summary = {
+                        col: {
+                            "kl_divergence": round(v["kl_divergence"], 4),
+                            "fidelity_score": round(v["score"] * 100, 1),
+                        }
+                        for col, v in tm["cat_scores"].items()
+                    } if tm["cat_scores"] else {}
 
-                # Column names give the AI crucial domain context
-                all_columns = list(df.columns)
-                n_orig      = len(df)
-                n_synth     = len(st.session_state["synth_df"])
+                    # Column names give the AI crucial domain context
+                    all_columns = list(df.columns)
+                    n_orig      = len(df)
+                    n_synth     = len(st.session_state["synth_df"])
 
-                use_case = use_case_input.strip() if use_case_input.strip() else None
+                    use_case = use_case_input.strip() if use_case_input.strip() else None
 
-                system_prompt = """You are a data scientist reviewing synthetic data quality results for a user.
+                    system_prompt = """You are a data scientist reviewing synthetic data quality results for a user.
 Your job is to give a plain, honest, peer-level interpretation of the metrics — not a tutorial.
 Write 3–4 short paragraphs. No bullet points, no headers, no metric definitions.
 Start by inferring what the dataset is likely for based on the column names, then immediately confirm or adjust based on the user's stated use case if provided.
@@ -1639,7 +1741,7 @@ Name specific columns when they are notably good or bad. Be direct about whether
 End with one concrete, actionable suggestion — row count, noise level, or a specific column to watch.
 Tone: like a colleague who just looked over your shoulder at the results."""
 
-                user_message = f"""Dataset columns: {all_columns}
+                    user_message = f"""Dataset columns: {all_columns}
 Original rows: {n_orig} → Synthetic rows: {n_synth}
 SCI Score: {tm['sci']}/100
 Correlation preservation: {tm['correlation_score']}/100
@@ -1649,29 +1751,29 @@ Per-column distribution scores: {dist_summary}
 Per-column categorical scores: {cat_summary}
 {"User's stated use case: " + use_case if use_case else "No use case stated — infer from column names."}"""
 
-                with st.spinner("Analysing synthetic data quality and use case fit…"):
-                    try:
-                        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-                        response = client.chat.completions.create(
-                            model="gpt-4o",
-                            messages=[
-                                {"role": "system", "content": system_prompt},
-                                {"role": "user",   "content": user_message},
-                            ],
-                            temperature=0.5,
-                            max_tokens=600,
-                        )
-                        explanation = response.choices[0].message.content.strip()
+                    with st.spinner("Analysing synthetic data quality and use case fit…"):
+                        try:
+                            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+                            response = client.chat.completions.create(
+                                model="gpt-4o",
+                                messages=[
+                                    {"role": "system", "content": system_prompt},
+                                    {"role": "user",   "content": user_message},
+                                ],
+                                temperature=0.5,
+                                max_tokens=600,
+                            )
+                            explanation = response.choices[0].message.content.strip()
 
-                        # Deduct 1 credit for the AI run
-                        new_balance = deduct_credit(st.session_state["access_key"])
-                        st.session_state["credits"] = new_balance
+                            # Deduct 1 credit for the AI run
+                            new_balance = deduct_credit(st.session_state["access_key"])
+                            st.session_state["credits"] = new_balance
 
-                        st.session_state["ai_explanation"]  = explanation
-                        st.session_state["ai_use_case_saved"] = use_case or "inferred from columns"
+                            st.session_state["ai_explanation"]  = explanation
+                            st.session_state["ai_use_case_saved"] = use_case or "inferred from columns"
 
-                    except Exception as e:
-                        st.error(f"AI analysis failed: {e}")
+                        except Exception as e:
+                            st.error(f"AI analysis failed: {e}")
 
         # Render stored explanation (persists across reruns)
         if st.session_state.get("ai_explanation"):
@@ -1765,13 +1867,45 @@ with tab4:
                     Universal format · UTF-8 encoded<br>Compatible with all data tools
                 </div>
             </div>""")
-            csv_data = synth_df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                "⬇ Download CSV",
-                data=csv_data,
-                file_name="datasynthx_synthetic.csv",
-                mime="text/csv"
-            )
+
+            is_trial   = st.session_state.get("is_free_trial", False)
+            over_limit = len(synth_df) > 100
+
+            if is_trial and over_limit:
+                st.html(f"""
+                <div style="background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.25);
+                            border-radius:10px;padding:16px 18px;margin-bottom:10px;
+                            font-family:Space Mono,monospace;font-size:11px;
+                            color:#9999b0;line-height:1.8;">
+                    <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;
+                                color:#a89df5;margin-bottom:6px;">⬡ Paid Feature</div>
+                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{len(synth_df):,} rows</span>.
+                    CSV export is limited to <strong style="color:#e8e8f0;">100 rows</strong> on the Free Trial.
+                    Upgrade to download the full dataset.
+                </div>
+                """)
+                st.link_button("Upgrade — Get Access Key →", "https://x.com/bayantx360",
+                               use_container_width=True)
+            elif is_trial and not over_limit:
+                csv_data = synth_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "⬇ Download CSV",
+                    data=csv_data,
+                    file_name="datasynthx_synthetic.csv",
+                    mime="text/csv"
+                )
+                st.html("""
+                <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                            margin-top:6px;">Free Trial · ≤100 rows included</div>
+                """)
+            else:
+                csv_data = synth_df.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    "⬇ Download CSV",
+                    data=csv_data,
+                    file_name="datasynthx_synthetic.csv",
+                    mime="text/csv"
+                )
 
         with col_dl2:
             st.html("""
@@ -1781,16 +1915,54 @@ with tab4:
                     Styled .xlsx format · Column widths<br>auto-fitted · Purple header theme
                 </div>
             </div>""")
-            try:
-                excel_data = to_excel_bytes(synth_df)
-                st.download_button(
-                    "⬇ Download Excel",
-                    data=excel_data,
-                    file_name="datasynthx_synthetic.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            except Exception as e:
-                st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
+
+            is_trial     = st.session_state.get("is_free_trial", False)
+            over_limit   = len(synth_df) > 100
+
+            if is_trial and over_limit:
+                # ── Free trial block for Excel ────────────────────────────
+                st.html(f"""
+                <div style="background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.25);
+                            border-radius:10px;padding:16px 18px;margin-bottom:10px;
+                            font-family:Space Mono,monospace;font-size:11px;
+                            color:#9999b0;line-height:1.8;">
+                    <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;
+                                color:#a89df5;margin-bottom:6px;">⬡ Paid Feature</div>
+                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{len(synth_df):,} rows</span>.
+                    Excel export is limited to <strong style="color:#e8e8f0;">100 rows</strong> on the Free Trial.
+                    Upgrade to download the full dataset as a styled .xlsx file.
+                </div>
+                """)
+                st.link_button("Upgrade — Get Access Key →", "https://x.com/bayantx360",
+                               use_container_width=True)
+            elif is_trial and not over_limit:
+                # Trial user with ≤100 rows — allow Excel download
+                try:
+                    excel_data = to_excel_bytes(synth_df)
+                    st.download_button(
+                        "⬇ Download Excel",
+                        data=excel_data,
+                        file_name="datasynthx_synthetic.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                    st.html("""
+                    <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                margin-top:6px;">Free Trial · ≤100 rows included</div>
+                    """)
+                except Exception as e:
+                    st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
+            else:
+                # Paid user — full Excel export
+                try:
+                    excel_data = to_excel_bytes(synth_df)
+                    st.download_button(
+                        "⬇ Download Excel",
+                        data=excel_data,
+                        file_name="datasynthx_synthetic.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                except Exception as e:
+                    st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1798,9 +1970,9 @@ with tab4:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if generate_btn:
-    # ── Credit check ────────────────────────────────────────────────────────
+    # ── Credit check (paid users only) ──────────────────────────────────────
     current_credits = st.session_state.get("credits", 0)
-    if current_credits <= 0:
+    if not st.session_state.get("is_free_trial", False) and current_credits <= 0:
         st.error(
             "⚡ You have no credits remaining. "
             "Please purchase a plan to continue generating synthetic data."
@@ -1825,9 +1997,13 @@ if generate_btn:
                 tm = TrustMetrics(df, synth_df, profile)
                 trust_data = tm.compute_sci()
 
-                progress_bar.progress(90, text="Deducting credit…")
-                new_balance = deduct_credit(st.session_state["access_key"])
-                st.session_state["credits"] = new_balance
+                # Deduct credit only for paid users
+                if not st.session_state.get("is_free_trial", False):
+                    progress_bar.progress(90, text="Deducting credit…")
+                    new_balance = deduct_credit(st.session_state["access_key"])
+                    st.session_state["credits"] = new_balance
+                else:
+                    progress_bar.progress(90, text="Finalizing…")
 
                 progress_bar.progress(95, text="Finalizing…")
                 st.session_state['synth_df']      = synth_df
@@ -1847,6 +2023,7 @@ if generate_btn:
         clr = score_color(sci)
         badge_cls, badge_label = score_badge(sci)
         remaining = st.session_state.get("credits", 0)
+        remaining_display = "∞" if st.session_state.get("is_free_trial", False) else str(remaining)
 
         st.html(f"""
         <div style="background:linear-gradient(135deg,rgba(124,106,247,0.08),rgba(62,207,207,0.08));
@@ -1860,7 +2037,7 @@ if generate_btn:
                 <div style="font-family:Space Mono,monospace;font-size:11px;color:#6b6b80;margin-top:4px;">
                     SCI Score: <span style="color:{clr};font-weight:700;">{sci}/100</span> ·
                     Status: <span class="badge {badge_cls}">{badge_label}</span> ·
-                    Credits left: <span style="color:#3ecfcf;font-weight:700;">{remaining}</span>
+                    Credits left: <span style="color:#3ecfcf;font-weight:700;">{remaining_display}</span>
                 </div>
             </div>
         </div>
