@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 # ─── Page Config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DataSynthX",
-    page_icon="⬡",
+    page_icon="✅",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -1974,7 +1974,7 @@ with tab4:
                     if not is_trial and dl_cost > 0:
                         new_bal = deduct_credits_amount(st.session_state["access_key"], dl_cost)
                         st.session_state["credits"] = new_bal
-                        st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="⬡")
+                        st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="✅")
                         st.rerun()
                 if is_trial:
                     st.html("""
@@ -2040,7 +2040,7 @@ with tab4:
                         if not is_trial and dl_cost > 0:
                             new_bal = deduct_credits_amount(st.session_state["access_key"], dl_cost)
                             st.session_state["credits"] = new_bal
-                            st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="⬡")
+                            st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="✅")
                             st.rerun()
                     if is_trial:
                         st.html("""
