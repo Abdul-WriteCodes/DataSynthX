@@ -401,6 +401,42 @@ def deduct_credit(access_key: str) -> int:
         return 0
 
 
+def download_credit_cost(n_rows: int) -> int:
+    """Return the credit cost for downloading/exporting a dataset by row count."""
+    if n_rows < 100:
+        return 0          # fewer than 100 rows — free (trial already capped at 70)
+    elif n_rows <= 500:
+        return 1
+    elif n_rows <= 1000:
+        return 2
+    else:
+        return 5
+
+
+def deduct_credits_amount(access_key: str, amount: int) -> int:
+    """Deduct a specific number of credits. Returns new balance."""
+    try:
+        ws = _get_keys_worksheet()
+        records = ws.get_all_records(
+            expected_headers=REQUIRED_HEADERS,
+            value_render_option="UNFORMATTED_VALUE",
+        )
+        records = [r for r in records if any(str(v).strip() for v in r.values())]
+        header = ws.row_values(1)
+        credits_col_idx = header.index(COL_CREDITS) + 1
+        for i, row in enumerate(records):
+            if str(row.get(COL_KEY, "")).strip() == access_key.strip():
+                row_number = i + 2
+                current  = int(row.get(COL_CREDITS, 0))
+                new_val  = max(0, current - amount)
+                ws.update_cell(row_number, credits_col_idx, new_val)
+                return new_val
+        return 0
+    except Exception as e:
+        st.error(f"Credit deduction error: {e}")
+        return 0
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  LANDING PAGE
 # ═══════════════════════════════════════════════════════════════════════════
@@ -557,12 +593,12 @@ def render_landing():
                 <span style="background:rgba(62,207,207,0.1);border:1px solid rgba(62,207,207,0.25);
                              color:#3ecfcf;font-family:Space Mono,monospace;font-size:10px;
                              letter-spacing:1px;padding:6px 14px;border-radius:8px;">
-                    ✓ CSV &amp; Excel Export (≤100 rows)
+                    ✓ CSV &amp; Excel Export (≤70 rows)
                 </span>
                 <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
                              color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
                              letter-spacing:1px;padding:6px 14px;border-radius:8px;opacity:0.85;">
-                    ✗ CSV / Excel Export &gt;100 rows
+                    ✗ CSV / Excel Export &gt;70 rows
                 </span>
                 <span style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.2);
                              color:#f76a6a;font-family:Space Mono,monospace;font-size:10px;
@@ -1857,6 +1893,38 @@ with tab4:
         </div>
         """)
 
+        # ── Download credit cost info ─────────────────────────────────────────
+        is_trial      = st.session_state.get("is_free_trial", False)
+        n_synth_rows  = len(synth_df)
+        dl_cost       = download_credit_cost(n_synth_rows)
+        current_creds = st.session_state.get("credits", 0)
+
+        if is_trial:
+            if n_synth_rows > 70:
+                cost_label = "Upgrade required — Free Trial limited to 70 rows"
+                cost_color = "#f76a6a"
+            else:
+                cost_label = "Free Trial · ≤70 rows · No credit needed"
+                cost_color = "#3ecfcf"
+        else:
+            if dl_cost == 0:
+                cost_label = "Download cost: Free (under 100 rows)"
+                cost_color = "#3ecfcf"
+            else:
+                tier = ("100–500 rows → 1 credit" if n_synth_rows <= 500
+                        else "501–1,000 rows → 2 credits" if n_synth_rows <= 1000
+                        else "1,000+ rows → 5 credits")
+                cost_label = f"Download cost: {dl_cost} credit{'s' if dl_cost != 1 else ''} · {tier}"
+                cost_color = "#f7a86a" if current_creds < dl_cost else "#7c6af7"
+
+        st.html(f"""
+        <div style="background:rgba(124,106,247,0.06);border:1px solid rgba(124,106,247,0.2);
+                    border-radius:10px;padding:12px 16px;margin-bottom:16px;
+                    font-family:Space Mono,monospace;font-size:11px;color:{cost_color};">
+            ⬡ {cost_label}
+        </div>
+        """)
+
         col_dl1, col_dl2 = st.columns(2)
 
         with col_dl1:
@@ -1868,10 +1936,7 @@ with tab4:
                 </div>
             </div>""")
 
-            is_trial   = st.session_state.get("is_free_trial", False)
-            over_limit = len(synth_df) > 100
-
-            if is_trial and over_limit:
+            if is_trial and n_synth_rows > 70:
                 st.html(f"""
                 <div style="background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.25);
                             border-radius:10px;padding:16px 18px;margin-bottom:10px;
@@ -1879,33 +1944,53 @@ with tab4:
                             color:#9999b0;line-height:1.8;">
                     <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;
                                 color:#a89df5;margin-bottom:6px;">⬡ Paid Feature</div>
-                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{len(synth_df):,} rows</span>.
-                    CSV export is limited to <strong style="color:#e8e8f0;">100 rows</strong> on the Free Trial.
+                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{n_synth_rows:,} rows</span>.
+                    CSV export is limited to <strong style="color:#e8e8f0;">70 rows</strong> on the Free Trial.
                     Upgrade to download the full dataset.
                 </div>
                 """)
                 st.link_button("Upgrade — Get Access Key →", "https://x.com/bayantx360",
                                use_container_width=True)
-            elif is_trial and not over_limit:
-                csv_data = synth_df.to_csv(index=False).encode('utf-8')
-                st.download_button(
-                    "⬇ Download CSV",
-                    data=csv_data,
-                    file_name="datasynthx_synthetic.csv",
-                    mime="text/csv"
-                )
-                st.html("""
-                <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
-                            margin-top:6px;">Free Trial · ≤100 rows included</div>
+            elif not is_trial and dl_cost > 0 and current_creds < dl_cost:
+                st.html(f"""
+                <div style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.25);
+                            border-radius:10px;padding:14px 16px;margin-bottom:10px;
+                            font-family:Space Mono,monospace;font-size:11px;color:#f76a6a;">
+                    Insufficient credits. This download costs {dl_cost} credit{'s' if dl_cost != 1 else ''}
+                    but you have {current_creds}. Please top up your plan.
+                </div>
                 """)
+                st.link_button("Get More Credits →", "https://x.com/bayantx360",
+                               use_container_width=True)
             else:
                 csv_data = synth_df.to_csv(index=False).encode('utf-8')
-                st.download_button(
+                if st.download_button(
                     "⬇ Download CSV",
                     data=csv_data,
                     file_name="datasynthx_synthetic.csv",
-                    mime="text/csv"
-                )
+                    mime="text/csv",
+                    key="csv_dl_btn"
+                ):
+                    if not is_trial and dl_cost > 0:
+                        new_bal = deduct_credits_amount(st.session_state["access_key"], dl_cost)
+                        st.session_state["credits"] = new_bal
+                        st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="⬡")
+                        st.rerun()
+                if is_trial:
+                    st.html("""
+                    <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                margin-top:6px;">Free Trial · ≤70 rows included</div>
+                    """)
+                elif dl_cost == 0:
+                    st.html("""
+                    <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                margin-top:6px;">No credit deducted · under 100 rows</div>
+                    """)
+                else:
+                    st.html(f"""
+                    <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                margin-top:6px;">{dl_cost} credit{'s' if dl_cost != 1 else ''} deducted on download</div>
+                    """)
 
         with col_dl2:
             st.html("""
@@ -1916,11 +2001,7 @@ with tab4:
                 </div>
             </div>""")
 
-            is_trial     = st.session_state.get("is_free_trial", False)
-            over_limit   = len(synth_df) > 100
-
-            if is_trial and over_limit:
-                # ── Free trial block for Excel ────────────────────────────
+            if is_trial and n_synth_rows > 70:
                 st.html(f"""
                 <div style="background:rgba(124,106,247,0.07);border:1px solid rgba(124,106,247,0.25);
                             border-radius:10px;padding:16px 18px;margin-bottom:10px;
@@ -1928,39 +2009,54 @@ with tab4:
                             color:#9999b0;line-height:1.8;">
                     <div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;
                                 color:#a89df5;margin-bottom:6px;">⬡ Paid Feature</div>
-                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{len(synth_df):,} rows</span>.
-                    Excel export is limited to <strong style="color:#e8e8f0;">100 rows</strong> on the Free Trial.
+                    Your dataset has <span style="color:#e8e8f0;font-weight:700;">{n_synth_rows:,} rows</span>.
+                    Excel export is limited to <strong style="color:#e8e8f0;">70 rows</strong> on the Free Trial.
                     Upgrade to download the full dataset as a styled .xlsx file.
                 </div>
                 """)
                 st.link_button("Upgrade — Get Access Key →", "https://x.com/bayantx360",
                                use_container_width=True)
-            elif is_trial and not over_limit:
-                # Trial user with ≤100 rows — allow Excel download
-                try:
-                    excel_data = to_excel_bytes(synth_df)
-                    st.download_button(
-                        "⬇ Download Excel",
-                        data=excel_data,
-                        file_name="datasynthx_synthetic.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                    st.html("""
-                    <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
-                                margin-top:6px;">Free Trial · ≤100 rows included</div>
-                    """)
-                except Exception as e:
-                    st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
+            elif not is_trial and dl_cost > 0 and current_creds < dl_cost:
+                st.html(f"""
+                <div style="background:rgba(247,106,106,0.08);border:1px solid rgba(247,106,106,0.25);
+                            border-radius:10px;padding:14px 16px;margin-bottom:10px;
+                            font-family:Space Mono,monospace;font-size:11px;color:#f76a6a;">
+                    Insufficient credits. This download costs {dl_cost} credit{'s' if dl_cost != 1 else ''}
+                    but you have {current_creds}. Please top up your plan.
+                </div>
+                """)
+                st.link_button("Get More Credits →", "https://x.com/bayantx360",
+                               use_container_width=True)
             else:
-                # Paid user — full Excel export
                 try:
                     excel_data = to_excel_bytes(synth_df)
-                    st.download_button(
+                    if st.download_button(
                         "⬇ Download Excel",
                         data=excel_data,
                         file_name="datasynthx_synthetic.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        key="xlsx_dl_btn"
+                    ):
+                        if not is_trial and dl_cost > 0:
+                            new_bal = deduct_credits_amount(st.session_state["access_key"], dl_cost)
+                            st.session_state["credits"] = new_bal
+                            st.toast(f"✓ {dl_cost} credit{'s' if dl_cost != 1 else ''} deducted · {new_bal} remaining", icon="⬡")
+                            st.rerun()
+                    if is_trial:
+                        st.html("""
+                        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                    margin-top:6px;">Free Trial · ≤70 rows included</div>
+                        """)
+                    elif dl_cost == 0:
+                        st.html("""
+                        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                    margin-top:6px;">No credit deducted · under 100 rows</div>
+                        """)
+                    else:
+                        st.html(f"""
+                        <div style="font-family:Space Mono,monospace;font-size:10px;color:#6b6b80;
+                                    margin-top:6px;">{dl_cost} credit{'s' if dl_cost != 1 else ''} deducted on download</div>
+                        """)
                 except Exception as e:
                     st.warning(f"Excel export unavailable: {e}. Use CSV instead.")
 
@@ -1970,12 +2066,11 @@ with tab4:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if generate_btn:
-    # ── Credit check (paid users only) ──────────────────────────────────────
-    current_credits = st.session_state.get("credits", 0)
-    if not st.session_state.get("is_free_trial", False) and current_credits <= 0:
+    # ── Free trial row cap ───────────────────────────────────────────────────
+    if st.session_state.get("is_free_trial", False) and n_rows > 70:
         st.error(
-            "⚡ You have no credits remaining. "
-            "Please purchase a plan to continue generating synthetic data."
+            "⬡ Free Trial is limited to 70 rows per generation. "
+            "Please reduce your row count or upgrade to a paid plan."
         )
         st.stop()
 
@@ -1997,13 +2092,8 @@ if generate_btn:
                 tm = TrustMetrics(df, synth_df, profile)
                 trust_data = tm.compute_sci()
 
-                # Deduct credit only for paid users
-                if not st.session_state.get("is_free_trial", False):
-                    progress_bar.progress(90, text="Deducting credit…")
-                    new_balance = deduct_credit(st.session_state["access_key"])
-                    st.session_state["credits"] = new_balance
-                else:
-                    progress_bar.progress(90, text="Finalizing…")
+                # Generation is FREE for all users — no credit deducted here
+                progress_bar.progress(90, text="Finalizing…")
 
                 progress_bar.progress(95, text="Finalizing…")
                 st.session_state['synth_df']      = synth_df
