@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 # ─── Page Config ────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DataSynthX",
-    page_icon="✅",
+    page_icon="🧬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
