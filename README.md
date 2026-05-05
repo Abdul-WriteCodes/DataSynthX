@@ -2,7 +2,7 @@
 
 # DataSynthX
 <p align="center">
-  <img src="assets/Dx1.jpeg" alt="DataSynthX Logo" width="800"/>
+  <img src="assets/dxe.png" alt="DataSynthX Logo" width="800"/>
 </p>
 
 Generate high-quality synthetic datasets in seconds — no complex setup, no manual data engineering.
