@@ -1,126 +1,76 @@
 
 
-# ⬡ DataSynthX
+# DataSynthX
 <p align="center">
   <img src="assets/Dx1.jpeg" alt="DataSynthX Logo" width="800"/>
 </p>
 
-
-DataSynthX is an AI-powered platform that enable users to generate useful synthetic data by learning the statistical DNA of the data. It makes synthetic data data generation simple by:
-- Enabling user upload any dataset
-- Learn its structure and statistical DNA
-- Generate high-fidelity synthetic data
-- Compute trust & validation metrics
-- Use AI to explain everything in plain English
-
->While most tools generate synthetic data, DataSynthX shows and tells you if you can trust and use it
+Generate high-quality synthetic datasets in seconds — no complex setup, no manual data engineering.
 
 
-## 💡 Use Cases
-DataSynthX is data agnostic system and is finding useful cases accross domains notably:
-- 🧪 Academic & research data simulations and analysis 
-- 📊 Machine Learning training dataset
-- 🏥 Healthcare data (privacy-safe)
-- 💳 Financial modeling
-- 🔍 Data analysis without exposure
-- 🧠 AI-assisted statistical interpretation
+## The Problem
+Collecting and Working with real-world data comes with major challenges:
+
+- 🔒 Data privacy and confidentiality restrictions  
+- 📉 Limited or incomplete datasets
+- 🕧 Time-consuming data collection and low response rate in survey
+- 🧪 Difficulty testing models without sufficient data  
+
+
+## The Solution
+DataSynthX is an synthetic data generation system that allows you to:
+
+- ⚡ Generate realistic datasets instantly
+- 🧬 Scale dataset to. your desired size without compromising quality 
+- 🔐 Preserve privacy without exposing real data  
+- 📊 Create data for testing, modeling, and experimentation  
+- 🚫 Eliminate manual data creation that inject bias into dataset  
+
+Benefits of using DataSynthX
+- 🕧 Saves hours of manual data preparation  
+- 🔁 Enables rapid experimentation and prototyping  
+- 🔐 Safe for sensitive and restricted data scenarios  
+- 🎯 Improves model testing and validation  
+
+> Use Case: With DataSynthX, you can generate any datasize of your desire (from the original) and size enough to meet your needs. Dataset generate with the system are being used for academic research, experumentation, machine learning model training, as well as testing
+
+---
+# Key Features
+
+- 🔬Statistical  Data Profiling Engine: Detects Uploaded Data and Exyract its key features 
+- 🧬Synthetic Data Generation Engine: Generate a version (row wise) version of user uploaded data
+- 📊Trust & Fidelity Metrics: Computes and Evaluate the quality of sythetic dataset generated using Kolmogorov-Smirnov Test, Wasserstein Distance, and Snthetic Consistency Index (SCI)
+- 🤖AI Insight Explainer: Analyse, Interprets and Discuss Use-Case fit of the data generated
+- 📂Export Ready: Support over 500k rows of data to be generated and expot as CSV fikle
 
 ---
 
-
-
-
-
-## ⚡ Key Features
-DataSynthX workflow follows: 
-```text
-Upload Data (csv or .xls) → Profile → Generate → Validate → Explain → Export
-```
-
--	🔬Statistical  Data Profiling Engine
-	- Automatic detection:
-	- Numeric, categorical, datetime columns
-	- Deep statistical extraction:
-		  - Mean, variance, skewness, kurtosis
-		  - Missing value patterns
-		  - Correlation matrix
-		  
-	>The purpose of this engine is to extract full statistical structure from raw datasets.
-
--	🧬Synthetic Data Generation Engine
-	- Multivariate Gaussian modeling** (numeric)
-	- Frequency-preserving sampling** (categorical)
-	- Missing value replication**
-	- Noise injection for realism**
-	- Scales to **hundreds of thousands of rows**
-	
-	>The core purpose of this engine is to generates synthetic data while preserving its distributions, correlations and missing patterns
-
--	📊Trust & Fidelity Metrics
-	- Correlation Preservation Score
-	- Distribution Similarity:
-		- Kolmogorov-Smirnov Test
-		- Wasserstein Distance
-		- Synthetic Consistency Index (SCI)
-		
-	>The core purpose of this engine is to evaluates how “real” the synthetic data is.
-
--	🤖AI Insight Explainer
-	- Interprets:
-		- Statistical distributions
-		- Correlation structures
-		- Synthetic vs real differences
-	- Explains:
-
-		- What changed
-		- What stayed consistent
-		- Whether the data is reliable
-	
-	>The core purpose of this engine is to transforms metrics into less plain understand insight for data owner
-	
--	Export Ready
-	- CSV download
-	- Excel download
-	- Ready for:
-		- Research and Data Analysis
-		- ML pipelines
-		- Testing environments
-
-
----
-
-#How to Use
+# Workflow
 DataSynthX is built as an easy-to-use no-code platform based on 
-- Upload (CSV / Excel dataset) and system automatically extract and presents its profile
-- Configure synthetic data generation
+1. 👉 Visit: [DataSynthX](https://datasynthx.streamlit.app/)
+2. 📂 Upload your daraset (CSV / Excel dataset)
+3. ⚙️ Configure the system from the siddbar:
 	- state the number of rows to be generated
-	- Adjusting noise level (from 0.00 to 0.20) to be injected into the dataset
-- Click Generate
-- Explore and Evaluate the Feature of the Synthetic data generated vs Original data
-	- Compare Mean
-	- Standard Deviation
-	- Minimum
-	- Maximum
-	- Distribution chart
--  Evaluate the quality and trustworthiness of the synthetic data generated
+	- Adjust noise level (from 0.00 to 0.20) to be injected into the dataset
+4. ✅️ Click Generate
+5. 🔁 Use the tab to Explore and Evaluate the Feature of the Synthetic data generated vs Original data
+6. 🔍 Evaluate the quality and trustworthiness of the synthetic data generated. Check:
 	- Correlation preservation Score
 	- Distribution similarity Score
 	- Categorical Fidelity Score
-- 	Click AI Explainer to Interprete the result
+ 7. 🧠 Click AI Explainer to Analyse and Interpret the use case fit of the data generated
+ 8. 📥 Export the newly generated as CSV/Excel file
 
-
-👉 **[Try the Live System Here](https://datasynthx.streamlit.app/)**
+ > Note: Access key🔑 is required to be able to use the AI-powered explainer feature and download of generated dataset that is >70 rows. Without access key, these features are not permitted but all other analysis will run.
 
 ---
 
 
-
-## 🔐 Privacy and Security
+# 🔐 Privacy and Security
 
 * No raw data storage
 * Synthetic output is non-identifiable
 * Built for:
-
   * Compliance
   * Secure data sharing
   * Safe experimentation
