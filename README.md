@@ -35,7 +35,7 @@ Benefits of using DataSynthX
 > Use Case: With DataSynthX, you can generate any datasize of your desire (from the original) and size enough to meet your needs. Dataset generate with the system are being used for academic research, experumentation, machine learning model training, as well as testing
 
 ---
-## Key Features
+# Key Features
 
 - 🔬Statistical  Data Profiling Engine: Detects Uploaded Data and Exyract its key features 
 - 🧬Synthetic Data Generation Engine: Generate a version (row wise) version of user uploaded data
@@ -66,12 +66,11 @@ DataSynthX is built as an easy-to-use no-code platform based on
 ---
 
 
-## 🔐 Privacy and Security
+# 🔐 Privacy and Security
 
 * No raw data storage
 * Synthetic output is non-identifiable
 * Built for:
-
   * Compliance
   * Secure data sharing
   * Safe experimentation
