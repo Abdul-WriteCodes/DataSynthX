@@ -1,6 +1,6 @@
 
 
-# DataSynthX
+# DataSynthX: Synthetic Dataset Generation System
 <p align="center">
   <img src="assets/dxe.png" alt="DataSynthX Logo" width="800"/>
 </p>
