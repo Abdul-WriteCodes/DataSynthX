@@ -626,6 +626,9 @@ def render_landing():
         st.rerun()
 
 
+    -= """
+
+
     # Pricing header
     st.html("""
     <div style="text-align:center;margin-bottom:36px;">
@@ -726,6 +729,8 @@ def render_landing():
         DataSynthX: Your Privacy-first synthetic data solution 
     </div>
     """)
+
+    """
 
     st.markdown("""
     <style>
