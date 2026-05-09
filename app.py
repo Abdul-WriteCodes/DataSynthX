@@ -626,7 +626,7 @@ def render_landing():
         st.rerun()
 
 
-    -= """
+    
 
 
     # Pricing header
@@ -730,7 +730,7 @@ def render_landing():
     </div>
     """)
 
-    """
+    
 
     st.markdown("""
     <style>
