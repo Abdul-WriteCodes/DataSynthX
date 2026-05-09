@@ -625,6 +625,7 @@ def render_landing():
         st.session_state["credits"]        = 999
         st.rerun()
 
+-="""
     # Pricing header
     st.html("""
     <div style="text-align:center;margin-bottom:36px;">
@@ -763,7 +764,7 @@ def render_landing():
     </div>
     """)
 
-
+_="""
 
 # ─── Auth gate ────────────────────────────────────────────────────────────────
 if not st.session_state.get("authenticated", False):
