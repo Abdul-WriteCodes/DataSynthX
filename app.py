@@ -626,8 +626,6 @@ def render_landing():
         st.rerun()
 
 
-    
-'''
 
     # Pricing header
     st.html("""
@@ -680,7 +678,7 @@ def render_landing():
                 url=plan["link"],
                 width='stretch',
             )
-'''
+            
     # Access key entry
     st.html("""
     <div style="text-align:center;margin-top:64px;margin-bottom:20px;">
