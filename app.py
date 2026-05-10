@@ -626,7 +626,7 @@ def render_landing():
         st.rerun()
 
 
-    if False:
+if False:
     # Pricing header
     st.html("""
     <div style="text-align:center;margin-bottom:36px;">
